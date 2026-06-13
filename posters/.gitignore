@@ -1,6 +1,0 @@
-.env
-poster_*.png
-__pycache__/
-*.pyc
-.venv/
-venv/

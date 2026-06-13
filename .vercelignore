@@ -1,0 +1,17 @@
+# Cleaning pipeline leftovers — not needed at runtime
+sprites/originals-with-bg/
+sprites/redbull-rush-archive/
+sprites/hf_*.png
+sprites/hf_*.mp4
+sprites/home_cover_alt.png
+sprites/home_cover_full.mp4
+sprites/.DS_Store
+
+# Old prototype + project artifacts
+gemini-cli/
+redbull-rush.html
+jana-nayagan-art-brief.md
+*.md
+
+# OS / editor
+.DS_Store

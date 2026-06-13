@@ -2,68 +2,4467 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="robots" content="noindex,nofollow" />
-<title>Site Unavailable</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Jana Nayagan — Last Stand (Prototype)</title>
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#0a0d14" />
 <style>
+  :root {
+    --ui:        #f4f1ea;
+    --accent:    #ffb02e;
+    --accent-2:  #ff5a1f;
+    --danger:    #ff3b3b;
+    --hp:        #2bd66e;
+    --ammo:      #ffd84d;
+    --bg-deep:   #07090d;
+    --bg-mid:    #0e131b;
+    --steel:     #2a2f3a;
+  }
   html, body {
-    margin: 0; padding: 0; height: 100%;
-    background: #0a0d14;
-    color: #f4f1ea;
+    margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--ui);
+    user-select: none;
+  }
+  #wrap {
+    position: fixed; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    text-align: center; padding: 24px;
+    background: radial-gradient(120% 80% at 50% 0%, #15181f 0%, #04060a 100%);
   }
-  .box { max-width: 560px; }
-  h1 {
-    font-size: 14px;
+  canvas {
+    display: block;
+    width: 100vw; height: 100vh;
+    cursor: crosshair;
+  }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .panel {
+    pointer-events: auto;
+    background: rgba(8, 10, 14, 0.82);
+    border: 1px solid rgba(255,176,46,0.25);
+    border-radius: 14px;
+    padding: 26px 32px;
+    text-align: center;
+    max-width: 620px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6),
+                0 0 0 1px rgba(255,90,31,0.06) inset,
+                0 0 60px rgba(255,90,31,0.18);
+  }
+  .panel h1 {
+    margin: 0 0 4px;
+    font-size: 38px;
+    letter-spacing: 4px;
+    font-weight: 900;
+    background: linear-gradient(180deg, #ffd57a, #ff6a00 60%, #b22a00);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(255,90,31,0.2);
+  }
+  .panel h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: 1px; }
+  .panel .sub {
+    font-size: 12px; letter-spacing: 6px; opacity: 0.6;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .panel p  { margin: 6px 0; line-height: 1.5; opacity: 0.9; }
+  .keycap {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    margin: 0 2px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+  }
+  .btn {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 11px 26px;
+    border: 0; border-radius: 10px;
+    background: linear-gradient(180deg, #ffb02e, #ff5a1f);
+    color: #1a1a1a; font-weight: 800; font-size: 15px; letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(255,90,31,0.3),
+                0 0 0 1px rgba(255,255,255,0.06) inset;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .stat-row { display:flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+  .stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 12px; border-radius: 8px; font-size: 13px;
+  }
+  .legend {
+    display:flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    margin-top: 10px; font-size: 12px; opacity: 0.85;
+  }
+  .legend span b { display:inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 5px;}
+  .hidden { display: none !important; }
+  .corner-note {
+    position: absolute; bottom: 10px; right: 14px;
+    font-size: 10px; opacity: 0.4; pointer-events: none; letter-spacing: 1px;
+  }
+
+  /* ============================================================
+     CINEMATIC HOME SCREEN
+     ============================================================ */
+  .home-overlay {
+    display: block;          /* override flex centering */
+    pointer-events: auto;
+    overflow: hidden;
+  }
+  .home-bg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    user-select: none;
+    pointer-events: none;
+    filter: brightness(0.95) saturate(1.05);
+  }
+  /* Ultra-wide monitors (21:9 and wider) crop the hero's face out of the
+     home video because object-fit: cover trims the top + bottom equally
+     to fill the wider container. Pushing object-position upward shifts
+     the visible window so MORE of the top (the face) stays in frame.
+     Only fires above ~2:1 — standard 16:9 desktop, Mac, and all mobile
+     orientations are untouched. */
+  @media (min-aspect-ratio: 2/1) {
+    .home-bg { object-position: center 25%; }
+  }
+  @media (min-aspect-ratio: 21/9) {
+    .home-bg { object-position: center 20%; }
+  }
+  /* Vignette darkens the corners so logo + UI pop */
+  .home-vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center,
+                rgba(0,0,0,0) 35%,
+                rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  /* Top gradient gives logo a clean reading area */
+  .home-grad-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 32%;
+    background: linear-gradient(180deg, rgba(8,10,14,0.78) 0%, rgba(8,10,14,0) 100%);
+    pointer-events: none;
+  }
+  /* Bottom gradient anchors the keybind strip */
+  .home-grad-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 26%;
+    background: linear-gradient(0deg, rgba(8,10,14,0.92) 0%, rgba(8,10,14,0) 100%);
+    pointer-events: none;
+  }
+  /* Logo + tagline group — upper-left, slight movie-poster tilt as a unit */
+  .home-logo-wrap {
+    position: absolute;
+    top: 4.5%;
+    left: 3.5%;
+    transform: rotate(-2.5deg);
+    transform-origin: top left;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .home-logo {
+    display: block;
+    width: clamp(280px, 28vw, 460px);
+    height: auto;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.6))
+            drop-shadow(0 0 30px rgba(255,170,60,0.18));
+    user-select: none;
+  }
+  /* Tagline pulled up into the logo's bottom whitespace so the visual
+     spacing reads tight (no gap between LAST STAND and the logo wordmark) */
+  .home-tagline {
+    font-size: clamp(11px, 1.1vw, 14px);
+    letter-spacing: 8px;
+    color: var(--accent);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.85);
+    margin-top: -28px;
+    position: relative;
+    z-index: 2;
+  }
+  /* Big PLAY GAME button — center-right, over the fire glow */
+  .home-play {
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 56px;
+    font-size: 20px;
     letter-spacing: 6px;
-    margin: 0 0 28px;
+    border-radius: 14px;
+    box-shadow: 0 14px 36px rgba(255,90,31,0.45),
+                0 0 0 1px rgba(255,255,255,0.10) inset,
+                0 0 80px rgba(255,90,31,0.30);
+  }
+  .home-play:hover { transform: translateX(-50%) translateY(-2px); }
+  /* Keybind strip — pinned to the very bottom */
+  .home-keybinds {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 14px 20px 16px;
+    background: linear-gradient(180deg,
+                rgba(8,10,14,0.55) 0%,
+                rgba(8,10,14,0.92) 100%);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    pointer-events: none;
+  }
+  .kb-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 14px 22px;
+    font-size: 12px;
+    color: rgba(244,241,234,0.92);
+    letter-spacing: 1px;
+  }
+  .kb {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .kb.dim {
     opacity: 0.55;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-  p {
-    line-height: 1.7;
-    margin: 0 0 16px;
-    opacity: 0.88;
-    font-size: 15px;
-  }
-  a {
-    color: #ffb02e;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(255, 176, 46, 0.35);
-    padding-bottom: 1px;
-  }
-  a:hover { border-bottom-color: #ffb02e; }
-  .signature {
-    margin-top: 36px;
-    opacity: 0.45;
     font-size: 11px;
+  }
+  .kb-sep {
+    width: 1px; height: 18px;
+    background: rgba(255,255,255,0.14);
+    margin: 0 4px;
+  }
+
+  /* ============================================================
+     RESULTS SCREEN — game over + share card
+     ============================================================ */
+  .results-block {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: auto;
+    width: min(720px, 92vw);
+  }
+  .results-title {
+    font-size: clamp(38px, 5.5vw, 72px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(180deg, #ffd57a, #ff6a00 60%, #b22a00);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(255,90,31,0.35);
+    margin-bottom: 6px;
+  }
+  .results-sub {
+    font-size: clamp(13px, 1.2vw, 16px);
+    color: rgba(244,241,234,0.75);
     letter-spacing: 2px;
-    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .results-score {
+    margin-bottom: 22px;
+  }
+  .rs-score-num {
+    font-size: clamp(72px, 11vw, 144px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 0.95;
+    text-shadow: 0 6px 30px rgba(0,0,0,0.6),
+                 0 0 60px rgba(255,90,31,0.25);
+    letter-spacing: 2px;
+  }
+  .rs-score-lbl {
+    font-size: 13px; letter-spacing: 8px; opacity: 0.55;
+    margin-top: 4px;
+  }
+  .results-stats {
+    display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  .rs-stat {
+    display: flex; flex-direction: column; align-items: center;
+    background: rgba(8,10,14,0.55);
+    border: 1px solid rgba(255,176,46,0.18);
+    border-radius: 10px;
+    padding: 10px 22px;
+    min-width: 100px;
+  }
+  .rs-stat b {
+    font-size: 22px; color: #fff; font-weight: 800;
+  }
+  .rs-stat span {
+    font-size: 11px; letter-spacing: 3px; opacity: 0.55; margin-top: 2px;
+  }
+  .results-buttons {
+    display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+  }
+  .results-btn {
+    padding: 12px 28px; font-size: 14px; letter-spacing: 3px;
+  }
+  .results-btn-save {
+    background: linear-gradient(180deg, #4a4f5a, #1f2229);
+    color: #f4f1ea;
+  }
+  .results-btn-retry {
+    background: linear-gradient(180deg, #2bd66e, #1a8c4f);
+    color: #0a0d14;
+  }
+  .results-toast {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    bottom: -56px;
+    background: rgba(8,10,14,0.92);
+    border: 1px solid rgba(255,176,46,0.30);
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .results-toast.hidden { display: none; }
+
+  /* ============================================================
+     MOBILE TOUCH CONTROLS
+     Overlay sits on top of the canvas. Hidden by default.
+     <body class="is-touch is-playing"> reveals it.
+     ============================================================ */
+  #touch-controls {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: none;
+    z-index: 30;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: none;
+  }
+  body.is-touch.is-playing #touch-controls { display: block; }
+
+  /* --- Left joystick zone (movement) --- */
+  #tc-stick-zone {
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 44vw; height: 60vh;
+    pointer-events: auto;
+    z-index: 1;
+  }
+  #tc-stick-base {
+    position: absolute;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0) 75%);
+    border: 2px solid rgba(255,255,255,0.22);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.4) inset;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  #tc-stick-base.active { opacity: 1; }
+  #tc-stick-thumb {
+    position: absolute;
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,176,46,0.85), rgba(255,90,31,0.95) 70%, rgba(150,40,0,1));
+    border: 2px solid rgba(255,255,255,0.55);
+    box-shadow: 0 6px 20px rgba(255,90,31,0.45), 0 0 0 1px rgba(0,0,0,0.5) inset;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  #tc-stick-thumb.active { opacity: 1; }
+
+  /* --- Right tap-to-aim zone (excludes the buttons) --- */
+  #tc-aim-zone {
+    position: absolute;
+    right: 0; top: 0;
+    width: 56vw; height: 100vh;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  /* --- Action buttons (FIRE + JUMP stack, bottom-right) --- */
+  .tc-action-stack {
+    position: absolute;
+    right: 22px; bottom: 22px;
+    display: flex; flex-direction: column;
+    gap: 14px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .tc-btn {
+    pointer-events: auto;
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.45);
+    color: #fff;
+    font-weight: 900; font-size: 13px; letter-spacing: 1.5px;
+    display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.4) inset;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.08s ease, filter 0.08s ease;
+    user-select: none;
+  }
+  .tc-btn.jump {
+    background: radial-gradient(circle at 35% 35%, rgba(255,210,90,0.95), rgba(255,140,30,0.95) 70%, rgba(170,75,0,1));
+  }
+  .tc-btn.pressed {
+    transform: scale(0.92);
+    filter: brightness(1.25);
+  }
+
+  /* --- Weapon switcher row (top-center) --- */
+  #tc-weapons {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 6px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .tc-wbtn {
+    pointer-events: auto;
+    min-width: 36px; height: 28px;
+    padding: 0 9px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.20);
+    background: rgba(8,10,14,0.55);
+    color: rgba(244,241,234,0.72);
+    font-weight: 800; font-size: 10px; letter-spacing: 1.5px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s ease;
+  }
+  .tc-wbtn.active {
+    background: linear-gradient(180deg, rgba(255,176,46,0.90), rgba(255,90,31,0.90));
+    color: #1a1a1a;
+    border-color: rgba(255,255,255,0.55);
+    box-shadow: 0 4px 12px rgba(255,90,31,0.35);
+  }
+  .tc-wbtn.locked {
+    opacity: 0.30;
+    color: rgba(244,241,234,0.40);
+  }
+
+  /* --- Pause button (top-left) --- */
+  #tc-pause {
+    pointer-events: auto;
+    position: absolute;
+    top: 12px; left: 12px;
+    z-index: 5;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    background: rgba(8,10,14,0.62);
+    color: rgba(244,241,234,0.85);
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #tc-pause::before {
+    content: ""; width: 4px; height: 14px;
+    background: currentColor; box-shadow: 8px 0 currentColor;
+    border-radius: 1px;
+  }
+
+  /* --- Portrait warning (mobile only) --- */
+  #tc-portrait-warn {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(4,6,10,0.96);
+    z-index: 999;
+    align-items: center; justify-content: center;
+    text-align: center;
+    color: var(--ui);
+    flex-direction: column;
+    padding: 30px;
+  }
+  #tc-portrait-warn .icon {
+    width: 68px; height: 110px;
+    border: 3px solid var(--accent);
+    border-radius: 10px;
+    margin-bottom: 22px;
+    position: relative;
+    animation: tc-rot 1.6s ease-in-out infinite;
+  }
+  #tc-portrait-warn .icon::after {
+    content: "";
+    position: absolute;
+    width: 24px; height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    bottom: 8px; left: 50%; transform: translateX(-50%);
+  }
+  @keyframes tc-rot {
+    0%, 40% { transform: rotate(0deg); }
+    60%, 100% { transform: rotate(-90deg); }
+  }
+  #tc-portrait-warn h3 { margin: 0 0 8px; font-size: 22px; letter-spacing: 2px; }
+  #tc-portrait-warn p { margin: 0; opacity: 0.75; font-size: 14px; line-height: 1.5; max-width: 320px; }
+  body.is-touch.is-portrait #tc-portrait-warn { display: flex; }
+
+  /* On mobile, scale down the home/over panels and hide desktop keybinds */
+  body.is-touch .home-keybinds.kb-desktop { display: none; }
+  body.is-touch .home-keybinds.kb-mobile { display: block; }
+  .home-keybinds.kb-mobile { display: none; }
+
+  /* iOS install hint pill — only shown when JS detects iOS Safari */
+  .ios-install {
+    display: none;
+    margin: 12px auto 0;
+    text-align: center;
+    pointer-events: none;
+  }
+  .ios-install-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px 9px 14px;
+    border-radius: 999px;
+    background: rgba(255, 176, 46, 0.12);
+    border: 1px solid rgba(255, 176, 46, 0.45);
+    color: #ffd57a;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 18px rgba(255,90,31,0.18);
+    animation: iosHintPulse 2.4s ease-in-out infinite;
+  }
+  .ios-install-inner b {
+    color: #fff;
+    font-weight: 700;
+  }
+  .ios-share-glyph {
+    display: inline-flex;
+    align-items: center;
+    color: #ffd57a;
+  }
+  .ios-arrow {
+    opacity: 0.6;
+    margin: 0 2px;
+  }
+  @keyframes iosHintPulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(255,90,31,0.18); }
+    50%      { box-shadow: 0 4px 26px rgba(255,90,31,0.45); }
   }
 </style>
 <script>
-  // Service worker cleanup. If a user previously visited and the SW cached
-  // any game assets locally, this unregisters that SW and clears the cache
-  // so nothing remains on their device.
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(r => r.unregister());
-    });
-    if (window.caches && caches.keys) {
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-    }
-  }
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <div class="box">
-    <h1>Site Unavailable</h1>
-    <p>The fan project that lived at this URL has been taken offline at the request of the rights holder.</p>
-    <p>Thank you to everyone who played, shared, and supported it during its short run.</p>
-    <p class="signature">Created by <a href="https://x.com/ikevinadams">@ikevinadams</a></p>
+  <div id="wrap">
+    <canvas id="game"></canvas>
+
+    <!-- Start screen — cinematic home cover -->
+    <div id="start" class="overlay home-overlay">
+      <video id="homeBg" class="home-bg" autoplay muted loop playsinline poster="sprites/home_cover.png"></video>
+      <div class="home-vignette"></div>
+      <div class="home-grad-top"></div>
+      <div class="home-grad-bottom"></div>
+
+      <div class="home-logo-wrap">
+        <img class="home-logo" src="sprites/jananayaganlogo.png" alt="JANA NAYAGAN" />
+        <div class="home-tagline">— LAST STAND —</div>
+      </div>
+
+      <button id="startBtn" class="btn home-play">PLAY GAME</button>
+
+      <div class="home-keybinds kb-desktop">
+        <div class="kb-row">
+          <span class="kb"><span class="keycap">A</span><span class="keycap">D</span> move</span>
+          <span class="kb"><span class="keycap">Space</span> jump</span>
+          <span class="kb"><span class="keycap">Mouse</span> aim</span>
+          <span class="kb"><span class="keycap">Click</span>/<span class="keycap">J</span> shoot</span>
+          <span class="kb"><span class="keycap">1</span><span class="keycap">2</span><span class="keycap">3</span> weapons</span>
+          <span class="kb-sep"></span>
+          <span class="kb dim"><span class="keycap">P</span> pause</span>
+          <span class="kb dim"><span class="keycap">R</span> restart</span>
+          <span class="kb dim"><span class="keycap">F</span> fullscreen</span>
+        </div>
+      </div>
+      <div class="home-keybinds kb-mobile">
+        <div class="kb-row">
+          <span class="kb"><span class="keycap">Stick</span> move</span>
+          <span class="kb"><span class="keycap">Tap</span> shoot</span>
+          <span class="kb"><span class="keycap">JUMP</span> leap</span>
+        </div>
+      </div>
+      <div class="ios-install" id="iosHomeHint">
+        <div class="ios-install-inner">
+          <span class="ios-share-glyph" aria-hidden="true">
+            <svg width="18" height="22" viewBox="0 0 18 22" fill="none">
+              <path d="M9 1.5v13M5 5l4-3.5L13 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 9.5H2v10.5h14V9.5h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="ios-install-text">
+            For full-screen play: tap <b>Share</b> <span class="ios-arrow">&rarr;</span> <b>Add to Home Screen</b>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause -->
+    <div id="pause" class="overlay hidden">
+      <div class="panel">
+        <h2>PAUSED</h2>
+        <p>Press <span class="keycap">P</span> to resume.</p>
+        <button id="resumeBtn" class="btn">RESUME</button>
+      </div>
+    </div>
+
+    <!-- Boss-defeated continue prompt -->
+    <div id="continue" class="overlay hidden">
+      <div class="panel">
+        <div class="sub">BOSS DEFEATED</div>
+        <h2 id="continueTitle">VICTORY.</h2>
+        <p>The boss is down. Cash out now, or push deeper for a higher score?</p>
+        <div class="stat-row">
+          <div class="stat">Kills: <b id="cnKills">0</b></div>
+          <div class="stat">Bosses: <b id="cnBosses">0</b></div>
+          <div class="stat">Score: <b id="cnScore">0</b></div>
+        </div>
+        <button id="continueBtn" class="btn">CONTINUE</button>
+        <button id="finishBtn" class="btn" style="margin-left:10px; background: linear-gradient(180deg, #4a4f5a, #1f2229); color: #f4f1ea;">CASH OUT</button>
+      </div>
+    </div>
+
+    <!-- Game over — cinematic results screen with share card -->
+    <div id="gameover" class="overlay home-overlay hidden">
+      <img class="home-bg" src="sprites/home_cover.png" alt="" />
+      <div class="home-vignette"></div>
+      <div class="home-grad-top"></div>
+      <div class="home-grad-bottom"></div>
+
+      <div class="home-logo-wrap">
+        <img class="home-logo" src="sprites/jananayaganlogo.png" alt="JANA NAYAGAN" />
+        <div class="home-tagline">— LAST STAND —</div>
+      </div>
+
+      <div class="results-block">
+        <div class="results-title" id="goTitle">YOU FELL.</div>
+        <div class="results-sub" id="goSub">The arm-bots overran the line. Run it back.</div>
+        <div class="results-score">
+          <div class="rs-score-num" id="goScore">0</div>
+          <div class="rs-score-lbl">SCORE</div>
+        </div>
+        <div class="results-stats">
+          <div class="rs-stat"><b id="goKills">0</b><span>KILLS</span></div>
+          <div class="rs-stat"><b id="goBosses">0</b><span>BOSSES</span></div>
+          <div class="rs-stat"><b id="goDist">0m</b><span>DISTANCE</span></div>
+          <div class="rs-stat"><b id="goBest">0</b><span>BEST</span></div>
+        </div>
+        <div class="results-buttons">
+          <button id="shareXBtn" class="btn results-btn results-btn-x">SHARE ON X</button>
+          <button id="saveImgBtn" class="btn results-btn results-btn-save">SAVE IMAGE</button>
+          <button id="retryBtn" class="btn results-btn results-btn-retry">TRY AGAIN</button>
+        </div>
+        <div class="results-toast hidden" id="resultsToast"></div>
+      </div>
+    </div>
+
+    <!-- Mobile touch controls (only visible on touch devices in play state) -->
+    <div id="touch-controls">
+      <div id="tc-pause" aria-label="Pause"></div>
+
+      <div id="tc-weapons">
+        <button class="tc-wbtn" data-weapon="1">PISTOL</button>
+        <button class="tc-wbtn locked" data-weapon="2">RIFLE</button>
+        <button class="tc-wbtn locked" data-weapon="3">RPG</button>
+      </div>
+
+      <div id="tc-stick-zone">
+        <div id="tc-stick-base"></div>
+        <div id="tc-stick-thumb"></div>
+      </div>
+
+      <div id="tc-aim-zone"></div>
+
+      <div class="tc-action-stack">
+        <button class="tc-btn jump" id="tc-jump">JUMP</button>
+      </div>
+    </div>
+
+    <!-- Portrait warning (forces user to rotate device) -->
+    <div id="tc-portrait-warn">
+      <div class="icon"></div>
+      <h3>ROTATE YOUR DEVICE</h3>
+      <p>Jana Nayagan plays in landscape. Turn your phone sideways to fight.</p>
+    </div>
+
+    <div class="corner-note">Created by @ikevinadams</div>
   </div>
+
+<script>
+/* ============================================================
+   JANA NAYAGAN — LAST STAND
+   2D side-scrolling shooter prototype
+   v1: locks core mechanics, uses programmatic placeholder art
+       so generated character + bot sprites can drop in later.
+
+   Architectural template: redbull-rush.html
+     - DPR-aware fullscreen canvas
+     - Sprite slots that fall back to vector placeholders
+     - Independent timed spawners
+     - Start / pause / gameover overlays
+   ============================================================ */
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  // ------------- DPR-aware sizing -------------
+  let W = 0, H = 0, DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+  function resize() {
+    DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    // visualViewport is more reliable than innerWidth/innerHeight in iOS
+    // standalone PWAs — innerWidth often returns stale values for several
+    // frames after rotation. Fall back to innerWidth/Height when unsupported.
+    const vv = window.visualViewport;
+    W = (vv && vv.width)  || window.innerWidth;
+    H = (vv && vv.height) || window.innerHeight;
+    canvas.width  = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  // iOS standalone bug: orientationchange fires BEFORE the viewport finishes
+  // rotating, so a synchronous resize reads the OLD dimensions. We schedule
+  // multiple retries (50ms, 200ms, 500ms, 1000ms) to catch the moment iOS
+  // finally commits the new viewport. Cheap and idempotent.
+  function rotationResize() {
+    resize();
+    setTimeout(resize, 50);
+    setTimeout(resize, 200);
+    setTimeout(resize, 500);
+    setTimeout(resize, 1000);
+  }
+  window.addEventListener('orientationchange', rotationResize);
+  // visualViewport.resize fires reliably on iOS when the actual layout
+  // viewport finishes settling — best signal we have on iOS PWAs.
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resize);
+  }
+  resize();
+
+  // ------------- Config -------------
+  const CFG = {
+    // physics
+    gravity: 2900,
+    jumpVelocity: -1320,        // bumped so single-jump clears wider/taller obstacles
+    doubleJumpVelocity: -1100,
+    walkAccel: 4800,
+    walkMaxSpeed: 460,
+    walkDrag: 12,           // exponential decel/sec when no input
+    airControl: 0.55,
+    maxFallSpeed: 1700,
+
+    // world
+    groundFraction: 0.86,   // ground line as fraction of H — sits inside painted rubble
+    cameraOffsetX: 0.30,    // player target x as fraction of W
+    cameraLerp: 5,          // lerp factor for smoothing
+    pixelsPerMeter: 14,
+
+    // player — visual sprite is ~240 tall, hitbox is more forgiving
+    playerW: 56,
+    playerH: 130,
+    playerSpriteH: 240,
+    playerHpMax: 100,
+    invulnTime: 0.55,
+
+    // weapons (id -> spec)
+    weapons: {
+      pistol: {
+        name: 'PISTOL',  ammoMax: Infinity, fireRate: 0.18,
+        bulletSpeed: 1700, damage: 1, spread: 0.02, pellets: 1,
+        recoil: 4, kick: 80, color: '#ffd84d', tracer: 0.12,
+      },
+      smg: {
+        name: 'SMG',     ammoMax: 80,  fireRate: 0.07,
+        bulletSpeed: 1900, damage: 1, spread: 0.06, pellets: 1,
+        recoil: 3, kick: 50, color: '#ffe87a', tracer: 0.10,
+      },
+      rocket: {
+        name: 'ROCKET',  ammoMax: 6,   fireRate: 0.85,
+        bulletSpeed: 750,  damage: 6, spread: 0,    pellets: 1,
+        recoil: 18, kick: 360, color: '#ff5a1f', tracer: 0,
+        explosive: true, explosionRadius: 180, explosionDmg: 7,
+      },
+    },
+
+    // enemy archetypes — gunner is the standard arm-bot, skitter is the fast
+    // crawling variant unlocked once the player has 2 weapon upgrades
+    enemies: {
+      // skitter — low crouching mantis-style biped, sprints on all fours, hard-hitting
+      // spriteH is deliberately small so the crawling pose sits much lower than
+      // the upright gunner (220px tall) — visually clear that this bot is on the ground.
+      skitter: { hp: 2, w: 130, h: 110, speed: 380, score: 80, dmg: 14, melee: 90,
+                 color: '#3a3f4a', accent: '#ffae3d', spriteH: 140, isSkitter: true },
+      gunner:  { hp: 3, w: 90,  h: 200, speed: 130, score: 60, dmg: 8,  melee: 0,
+                 color: '#3a3f4a', accent: '#ffae3d', ranged: true, fireRate: 1.6, bulletSpeed: 750, spriteH: 220 },
+      heavy:   { hp: 9, w: 90,  h: 200, speed: 90,  score: 150, dmg: 22, melee: 90,
+                 color: '#3a3f4a', accent: '#ff5a1f', stomp: true, spriteH: 220 },
+      // Boss villain — scripted spawn, huge HP, big revolver shots.
+      // Sized to match hero (playerSpriteH = 240) so they read as equals
+      // visually rather than the boss towering over the hero.
+      // Boss balance: 95 HP (was 120 — 21% nerf), 16 dmg/shot (was 22 — 27%
+      // nerf), 1.75s fire rate (was 1.4 — 25% slower), bullet speed 740
+      // (was 820 — 10% slower → more reaction time). Combined with the
+      // mid-fight heal at 50% HP and infinite ammo during the encounter,
+      // this lands at a roughly 50/50 win rate for an attentive player.
+      boss:    { hp: 95, w: 90, h: 200, speed: 90, score: 800, dmg: 16, melee: 0,
+                 color: '#3a3f4a', accent: '#ffae3d', ranged: true, fireRate: 1.75, bulletSpeed: 740,
+                 spriteH: 240, isBoss: true },
+    },
+
+    // spawn timers (sec) — get faster over time
+    enemyEveryMin: 0.9,
+    enemyEveryMax: 2.1,
+    pickupEveryMin: 4.5,
+    pickupEveryMax: 8.5,
+
+    // pickups
+    pickup: {
+      health:  { type:'health',  color:'#2bd66e', amount: 30 },
+      ammo:    { type:'ammo',    color:'#ffd84d' },
+      weapon:  { type:'weapon',  color:'#ff5a1f' },
+      score:   { type:'score',   color:'#9ad8ff', amount: 50 },
+    },
+
+    // FX
+    bulletLife: 1.4,
+    explosionLife: 0.45,
+    debrisLife: 0.9,
+    embersPerSec: 35,
+    sparkChancePerSec: 0.4,
+  };
+
+  // ------------- Sprite slots (drop-in later) -------------
+  // When the user generates real art, just set sprites.hero_run / sprites.bot_skitter etc.
+  // The render code falls back to procedural silhouettes.
+  const sprites = {
+    hero_idle:  null,
+    hero_idle_rifle:  null,        // idle while carrying assault rifle (low-ready)
+    hero_idle_rocket: null,        // idle while shouldering rocket launcher
+    hero_run:   null,             // legacy fallback (rocket launcher trail-hand sprint)
+    // 2-frame walk cycles per weapon — A=left planted/right stepping, B=right planted/left stepping
+    hero_run_pistol_a: null,
+    hero_run_pistol_b: null,
+    hero_run_rifle_a:  null,
+    hero_run_rifle_b:  null,
+    hero_run_rocket_a: null,
+    hero_run_rocket_b: null,
+    hero_jump:  null,
+    hero_jump_rifle:  null,       // jumping while holding rifle
+    hero_jump_rocket: null,       // jumping while carrying rocket launcher
+    hero_shoot: null,             // rifle shoot
+    hero_shoot_pistol: null,
+    hero_shoot_rocket: null,
+    // Aim-down variants — used when player is elevated on a platform and
+    // firing at enemies on the ground below
+    hero_shoot_down: null,        // rifle, aimed downward
+    hero_shoot_pistol_down: null,
+    hero_shoot_rocket_down: null,
+    hero_hurt:  null,
+    hero_win:   null,
+    bot_skitter_idle:   null,
+    bot_skitter_charge: null,
+    bot_gunner_idle:    null,
+    bot_gunner_walk:    null,
+    bot_gunner_step_a:  null,    // extra walk frame: leg lifted forward
+    bot_gunner_step_b:  null,    // extra walk frame: passing-through stride
+    bot_heavy_idle:     null,
+    bot_heavy_stomp:    null,
+    bot_heavy_smash:    null,
+    pickup_health: null,
+    pickup_ammo:   null,
+    pickup_weapon: null,
+    pickup_score:  null,
+    bg_far: null,
+    bg_mid: null,
+    bg_near: null,
+    bg_floor: null,
+    // Obstacle props
+    obstacle_concrete_wall: null,    obstacle_concrete_wall_b: null,    obstacle_concrete_wall_c: null,
+    obstacle_pillar_debris: null,
+    obstacle_rubble_pile: null,
+    obstacle_cargo_crates: null,     obstacle_cargo_crates_b: null,     obstacle_cargo_crates_c: null,
+    obstacle_burning_wreck: null,    obstacle_burning_wreck_b: null,    obstacle_burning_wreck_c: null,
+    obstacle_robot_pile: null,       obstacle_robot_pile_b: null,
+    obstacle_sparking_cables: null,
+    obstacle_sandbag_wall: null,
+    obstacle_jersey_barrier: null,
+    obstacle_collapsed_billboard: null,
+    weapon_icon_pistol: null,
+    weapon_icon_rifle:  null,
+    weapon_icon_rocket: null,
+    obstacle_oil_drums: null,        obstacle_oil_drums_b: null,
+    // Boss villain
+    boss_idle:   null,
+    boss_walk_a: null,
+    boss_walk_b: null,
+    boss_shoot:  null,
+  };
+
+  // ------------- Sprite loader -------------
+  // Sprites are pre-keyed alpha PNGs in ./sprites/ — just load and assign.
+  // Anything that fails to load stays null and the procedural placeholder
+  // renderer takes over for that slot.
+  // ============================================================
+  // AUDIO SYSTEM — BGM loop + programmatic SFX via Web Audio API
+  // ============================================================
+  let audioCtx = null;
+  let bgmEl = null;
+  let audioStarted = false;
+  let masterVolume = 1.0;
+  let muted = false;
+
+  // HTML5 <audio> element pools — works under file:// URLs where fetch() is
+  // blocked by browser security. Each pool has POOL_SIZE clones so the same
+  // sound can play overlapping (essential for SMG rapid-fire layering).
+  const SFX_POOL_SIZE = 8;
+  const sfxPools = {};
+  let sfxPoolsBuilt = false;
+
+  function buildSfxPool(key, url) {
+    sfxPools[key] = [];
+    for (let i = 0; i < SFX_POOL_SIZE; i++) {
+      const a = new Audio(url);
+      a.preload = 'auto';
+      a.volume = 1.0;
+      sfxPools[key].push(a);
+    }
+  }
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e) { /* synth fallbacks still need this */ }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (!sfxPoolsBuilt) {
+      sfxPoolsBuilt = true;
+      buildSfxPool('pistol', 'audio/sfx_pistol.wav');
+      buildSfxPool('rifle',  'audio/sfx_rifle.wav');
+      buildSfxPool('rocket', 'audio/sfx_rocket.wav');
+    }
+  }
+
+  function playBuffer(key, volume) {
+    if (muted) return false;
+    const pool = sfxPools[key];
+    if (!pool || pool.length === 0) return false;
+    // Find an idle clone — paused, ended, or hasn't started
+    let chosen = null;
+    for (const a of pool) {
+      if (a.paused || a.ended) { chosen = a; break; }
+    }
+    if (!chosen) chosen = pool[0];   // all busy — interrupt the oldest
+    try {
+      chosen.volume = Math.min(1, (volume == null ? 1.0 : volume) * masterVolume);
+      chosen.currentTime = 0;
+      const p = chosen.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch(e) { return false; }
+    return true;
+  }
+
+  function startBGM() {
+    if (audioStarted) return;
+    audioStarted = true;
+    ensureAudio();
+    if (!bgmEl) {
+      bgmEl = new Audio('audio/bgm.mp3');
+      bgmEl.loop = true;
+      bgmEl.volume = 0.16;     // softer so SFX punch through
+    }
+    bgmEl.play().catch(() => {});
+  }
+
+  function setMuted(v) {
+    muted = v;
+    if (bgmEl) bgmEl.muted = v;
+  }
+
+  // SFX — small synthesized sounds via Web Audio API.
+  // No external files needed. Each SFX is a short oscillator/noise burst.
+  function _makeNoise(durationS) {
+    const sr = audioCtx.sampleRate;
+    const buf = audioCtx.createBuffer(1, sr * durationS, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    return src;
+  }
+  function _envelopedGain(peak, attack, release) {
+    const g = audioCtx.createGain();
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + release);
+    return g;
+  }
+  function sfxShoot(weapon) {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    // Map weapon -> sample key. SMG uses the assault-rifle sample (rapid-fire
+    // overlapping plays naturally build the machine-gun roar).
+    const sampleKey = weapon === 'pistol' ? 'pistol'
+                    : weapon === 'smg'    ? 'rifle'
+                    : weapon === 'rocket' ? 'rocket'
+                    : 'pistol';
+    // Per-weapon volume balance
+    const vol = weapon === 'rocket' ? 0.85
+              : weapon === 'smg'    ? 0.45    // softened because rapid-fire layers
+              : 0.70;                          // pistol — single shot, full volume
+    if (playBuffer(sampleKey, vol)) return;
+
+    // Fallback synth if buffer hasn't loaded yet (first frame after ensureAudio)
+    const t0 = audioCtx.currentTime;
+    const n = _makeNoise(0.10);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 1400;
+    const g = _envelopedGain(0.4 * masterVolume, 0.001, 0.09);
+    n.connect(f).connect(g).connect(audioCtx.destination);
+    n.start(); n.stop(t0 + 0.18);
+  }
+  function sfxRobotDeath() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const n = _makeNoise(0.45);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 1300;
+    const g = _envelopedGain(0.70 * masterVolume, 0.003, 0.45);
+    n.connect(f).connect(g).connect(audioCtx.destination);
+    n.start();
+    n.stop(audioCtx.currentTime + 0.5);
+    const o = audioCtx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(380, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.4);
+    const og = _envelopedGain(0.32 * masterVolume, 0.005, 0.4);
+    o.connect(og).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.5);
+  }
+  function sfxExplosion() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const n = _makeNoise(0.6);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 700;
+    const g = _envelopedGain(1.0 * masterVolume, 0.003, 0.6);
+    n.connect(f).connect(g).connect(audioCtx.destination);
+    n.start(); n.stop(audioCtx.currentTime + 0.7);
+    const o = audioCtx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(80, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.5);
+    const og = _envelopedGain(1.0 * masterVolume, 0.005, 0.6);
+    o.connect(og).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.7);
+  }
+  function sfxPickup() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(640, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.18);
+    const g = _envelopedGain(0.40 * masterVolume, 0.005, 0.20);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.25);
+  }
+  function sfxJump() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(380, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(640, audioCtx.currentTime + 0.10);
+    const g = _envelopedGain(0.20 * masterVolume, 0.003, 0.10);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.15);
+  }
+  function sfxHurt() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const n = _makeNoise(0.18);
+    const f = audioCtx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 600;
+    const g = _envelopedGain(0.50 * masterVolume, 0.003, 0.18);
+    n.connect(f).connect(g).connect(audioCtx.destination);
+    n.start(); n.stop(audioCtx.currentTime + 0.25);
+  }
+  function sfxBossEntry() {
+    if (!audioCtx || muted) return;
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(60, audioCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 1.1);
+    const g = _envelopedGain(0.45 * masterVolume, 0.05, 1.2);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 1.4);
+  }
+
+  // ============================================================
+  // HOME-SCREEN VIDEO PLAYLIST — sequential cycle through cover videos
+  // ============================================================
+  // Add more entries here as you generate them. The driver plays them in
+  // order, then loops back to the first when the last one ends.
+  // Single edited sequence on loop. The playlist driver still cycles back
+  // when this clip ends, giving us a clean restart every iteration.
+  const HOME_VIDEOS = [
+    'sprites/home_loop.mp4',
+  ];
+  function setupHomeVideoPlaylist() {
+    const v = document.getElementById('homeBg');
+    if (!v) return;
+    let idx = 0;
+    function loadIdx(i) {
+      // Probe: skip silently if the file isn't present yet
+      const url = HOME_VIDEOS[i];
+      v.src = url;
+      v.load();
+      const playPromise = v.play();
+      if (playPromise && playPromise.catch) playPromise.catch(() => {});
+    }
+    v.addEventListener('ended', () => {
+      idx = (idx + 1) % HOME_VIDEOS.length;
+      loadIdx(idx);
+    });
+    // If a source fails to load (file missing), skip to the next one
+    v.addEventListener('error', () => {
+      idx = (idx + 1) % HOME_VIDEOS.length;
+      // avoid infinite loop if all sources missing
+      if (idx === 0 && HOME_VIDEOS.length === 1) return;
+      setTimeout(() => loadIdx(idx), 50);
+    });
+    loadIdx(0);
+  }
+  // Defer to next tick so the DOM is ready
+  setTimeout(setupHomeVideoPlaylist, 0);
+
+  // Cache-bust on every load so the browser doesn't serve stale PNGs
+  // when sprites have been re-flipped or re-cleaned on disk.
+  const SPRITE_CACHE_BUST = Date.now();
+  function loadSprites() {
+    for (const k of Object.keys(sprites)) {
+      const img = new Image();
+      img.onload  = () => { sprites[k] = img; };
+      img.onerror = () => { /* placeholder fallback handles this */ };
+      img.src = `sprites/${k}.png?v=${SPRITE_CACHE_BUST}`;
+    }
+  }
+  loadSprites();
+
+  // Tile a panoramic background sprite horizontally with parallax scroll.
+  // `parFactor` 0..1 controls how much the layer scrolls with the camera.
+  // `topY` is where the top of the layer sits on screen, `targetH` is the
+  // drawn height of one tile (sprite scales to fit this height).
+  // `opts.mirror` (default false) — alternate-flip every other tile so the
+  //   pattern reads as ABAB instead of AAAA, eliminating obvious repeats.
+  // `opts.fadeEdges` (default false) — paints a soft dark gradient at each
+  //   tile seam to mask hard pixel mismatches between tiles.
+  function drawParallaxLayer(sprite, parFactor, topY, targetH, opts) {
+    if (!sprite) return;
+    opts = opts || {};
+    const sw = sprite.naturalWidth  || sprite.width;
+    const sh = sprite.naturalHeight || sprite.height;
+    const scale = targetH / sh;
+    const tileW = sw * scale;
+    const camOff = game.cameraX * parFactor;
+    const tileIdxFloat = camOff / tileW;
+    const startIdx = Math.floor(tileIdxFloat);
+    let x = -((camOff % tileW + tileW) % tileW);   // first tile's left edge on screen
+    let idx = startIdx;
+    while (x < W) {
+      const flipThis = !!opts.mirror && (idx % 2 !== 0);
+      if (flipThis) {
+        ctx.save();
+        ctx.translate(x + tileW, topY);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprite, 0, 0, tileW, targetH);
+        ctx.restore();
+      } else {
+        ctx.drawImage(sprite, x, topY, tileW, targetH);
+      }
+      // Soft fade at the seam between this tile and the next, hides mismatches
+      if (opts.fadeEdges) {
+        const seamW = Math.min(80, tileW * 0.12);
+        const seamX = x + tileW - seamW / 2;
+        const grad = ctx.createLinearGradient(seamX, 0, seamX + seamW, 0);
+        grad.addColorStop(0,    'rgba(8, 10, 14, 0)');
+        grad.addColorStop(0.5,  'rgba(8, 10, 14, 0.55)');
+        grad.addColorStop(1,    'rgba(8, 10, 14, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(seamX, topY, seamW, targetH);
+      }
+      x += tileW;
+      idx += 1;
+    }
+  }
+
+  // ============================================================
+  // OBSTACLE SYSTEM — platform props the player can jump onto
+  // ============================================================
+  // Each kind references one or more sprite variants (chosen at random when
+  // spawning), the in-game render height, the walkable hitbox width, the
+  // "topInset" fraction telling us how far below the sprite's top edge the
+  // walkable surface actually starts, and emitter flags for smoke/sparks.
+  const OBSTACLE_DEFS = {
+    concrete_wall: {
+      // Original obstacle_concrete_wall.png had a baked-in green/gold floor
+      // halo at the bottom that wouldn't blend cleanly — dropped from the
+      // pool. _b and _c are clean and work well together.
+      variants: ['obstacle_concrete_wall_b','obstacle_concrete_wall_c'],
+      spriteH: 200, hitW: 280, topInset: 0.18, isPlatform: true,
+      weight: 14,
+    },
+    pillar_debris: {
+      variants: ['obstacle_pillar_debris'],
+      spriteH: 220, hitW: 150, topInset: 0.10, isPlatform: true,
+      weight: 8,
+      // Concrete asset crushed darker + toe lifted (lower contrast) so the
+      // shadows aren't pure-black — adds the same subtle haze as the rest.
+      filter: 'brightness(0.72) contrast(1.05) saturate(0.90)',
+      yOffset: 14,
+    },
+    rubble_pile: {
+      variants: ['obstacle_rubble_pile'],
+      // Bumped from 160→200 so the debris reads bigger and more present.
+      spriteH: 200, hitW: 360, topInset: 0.20, isPlatform: true,
+      weight: 12,
+      // Knocked brightness down a hair more so the pile sits darker against
+      // the floor — was still reading too bright in playtest.
+      filter: 'brightness(0.55) contrast(1.06) saturate(0.85)',
+      yOffset: 22,
+    },
+    cargo_crates: {
+      variants: ['obstacle_cargo_crates','obstacle_cargo_crates_b','obstacle_cargo_crates_c'],
+      spriteH: 260, hitW: 300, topInset: 0.06, isPlatform: true,
+      // Default tiers (used as fallback) match the _a layout — tall on left.
+      tiers: [
+        { x0: 0.00, x1: 0.50, topInsetFrac: 0.06 },
+        { x0: 0.50, x1: 1.00, topInsetFrac: 0.42 },
+      ],
+      // Per-variant tier overrides — each PNG has a different stack layout
+      // and the previous shared-tier config only matched one of them. Now
+      // every variant gets its own tier map so the player lands cleanly on
+      // whatever container is visually in front of them.
+      variantTiers: {
+        // _a: tall on LEFT, shorter on RIGHT
+        'obstacle_cargo_crates': [
+          { x0: 0.00, x1: 0.50, topInsetFrac: 0.06 },
+          { x0: 0.50, x1: 1.00, topInsetFrac: 0.42 },
+        ],
+        // _b: tall on RIGHT, shorter on LEFT (mirrored)
+        'obstacle_cargo_crates_b': [
+          { x0: 0.00, x1: 0.50, topInsetFrac: 0.42 },
+          { x0: 0.50, x1: 1.00, topInsetFrac: 0.06 },
+        ],
+        // _c: 3-tier stairstep — tall left, mid middle, short right
+        'obstacle_cargo_crates_c': [
+          { x0: 0.00, x1: 0.36, topInsetFrac: 0.06 },
+          { x0: 0.36, x1: 0.66, topInsetFrac: 0.30 },
+          { x0: 0.66, x1: 1.00, topInsetFrac: 0.55 },
+        ],
+      },
+      weight: 8,
+      // Containers were rendering too bright + teal-tinted, popping out of
+      // the dark scene. Crush brightness, ease saturation, lift toe so the
+      // metal blends naturally with the rest of the world.
+      filter: 'brightness(0.62) contrast(1.06) saturate(0.78)',
+    },
+    burning_wreck: {
+      // 2× original height (480). topInset 0.78 keeps the solid blocking
+      // hitbox (bottom 22% of sprite ≈ 105px) the same physical size as
+      // before — wreck reads imposing but still single-jump clearable.
+      variants: ['obstacle_burning_wreck','obstacle_burning_wreck_b','obstacle_burning_wreck_c'],
+      spriteH: 440, hitW: 220, topInset: 0.76, isPlatform: false,
+      smoke: true, smokeAtY: 0.35,
+      weight: 10,
+      yOffset: 22,
+    },
+    robot_pile: {
+      variants: ['obstacle_robot_pile','obstacle_robot_pile_b'],
+      spriteH: 140, hitW: 280, topInset: 0.22, isPlatform: true,
+      sparks: true, sparkRate: 0.4,
+      weight: 10,
+    },
+    // (sparking_cables removed — visually too noisy; played as a floating
+    // mess of wires that didn't sit naturally on the ground.)
+    // (oil_drums def deleted — no longer spawns or renders anywhere.)
+
+    // --- New obstacles (Apr 27 batch) — proportionate to hero spriteH 240 ---
+    sandbag_wall: {
+      // Pyramid stack of sandbags + small ammo crate at base. Reads as
+      // chest-high cover (~70% of hero height).
+      variants: ['obstacle_sandbag_wall'],
+      spriteH: 170, hitW: 220, topInset: 0.20, isPlatform: true,
+      weight: 9,
+      // Brightness crushed harder so the warm-tone burlap sinks into the
+      // dark scene. The bags were the brightest object in any frame —
+      // dropping to 0.55 puts them on level with the rest of the props.
+      filter: 'brightness(0.55) contrast(1.16) saturate(0.82)',
+      yOffset: 24,
+    },
+    jersey_barrier: {
+      // Two stacked concrete traffic barriers. Shoulder-high (~65% hero).
+      variants: ['obstacle_jersey_barrier'],
+      spriteH: 160, hitW: 200, topInset: 0.10, isPlatform: true,
+      weight: 9,
+      // Concrete + yellow stripe was still popping. Crushed harder so the
+      // barrier sits in the dark scene rather than hovering above it.
+      filter: 'brightness(0.50) contrast(1.20) saturate(0.74)',
+      yOffset: 24,
+    },
+    collapsed_billboard: {
+      // Toppled billboard with twisted scaffold. Waist-high at peak.
+      variants: ['obstacle_collapsed_billboard'],
+      spriteH: 145, hitW: 240, topInset: 0.22, isPlatform: true,
+      weight: 9,
+      // Warm torn-paper desaturated and crushed — must sit with the haze.
+      filter: 'brightness(0.64) contrast(1.18) saturate(0.80)',
+      yOffset: 26,
+    },
+  };
+
+  let obstacles = [];
+
+  // Track the last 2 kinds picked — when the new pick matches one of them,
+  // reroll once. Forces variety: same kind never appears 3× in a row, and
+  // back-to-back repeats are filtered.
+  let _lastObstacleKinds = [];
+  function pickWeightedObstacleKind() {
+    const pickOnce = () => {
+      let total = 0;
+      for (const k in OBSTACLE_DEFS) total += OBSTACLE_DEFS[k].weight;
+      let r = Math.random() * total;
+      for (const k in OBSTACLE_DEFS) {
+        r -= OBSTACLE_DEFS[k].weight;
+        if (r <= 0) return k;
+      }
+      return Object.keys(OBSTACLE_DEFS)[0];
+    };
+    let pick = pickOnce();
+    // If the new pick is in the last-2 list, reroll once. Don't loop forever
+    // — a single reroll is enough to break tedious back-to-backs without
+    // forcing long, awkward weighted-bias detours.
+    if (_lastObstacleKinds.includes(pick)) pick = pickOnce();
+    _lastObstacleKinds = [pick, _lastObstacleKinds[0]].filter(Boolean);
+    return pick;
+  }
+  // (legacy single-pass picker kept below as fallback for safety —
+  //  unreachable in the current codebase but preserved for clarity.)
+  function pickWeightedObstacleKind_legacy() {
+    let total = 0;
+    for (const k in OBSTACLE_DEFS) total += OBSTACLE_DEFS[k].weight;
+    let r = Math.random() * total;
+    for (const k in OBSTACLE_DEFS) {
+      r -= OBSTACLE_DEFS[k].weight;
+      if (r <= 0) return k;
+    }
+    return Object.keys(OBSTACLE_DEFS)[0];
+  }
+
+  function spawnObstacle() {
+    const kind = pickWeightedObstacleKind();
+    const def = OBSTACLE_DEFS[kind];
+    const variant = def.variants[(Math.random() * def.variants.length) | 0];
+    const spr = sprites[variant];
+    // Compute drawn dimensions from sprite aspect (or use def fallback)
+    let drawnW = def.hitW;
+    if (spr) {
+      const sw = spr.naturalWidth || spr.width;
+      const sh = spr.naturalHeight || spr.height;
+      drawnW = def.spriteH * (sw / sh);
+    }
+    const baseY = groundY();
+    const x = game.cameraX + W + 200;
+    const spriteY = baseY - def.spriteH;
+    // Visual yOffset (default 14) shifts the rendered sprite DOWN to feather
+    // into the floor. Collision tiers must shift by the same amount or the
+    // player tries to land on the visible top but gets pushed back because
+    // the invisible "true top" sits 14px above the visible top.
+    const yOff = def.yOffset != null ? def.yOffset : 14;
+    // Per-variant tier overrides take priority over def.tiers — used by
+    // cargo_crates where each PNG has a totally different stack shape.
+    const tierSrc = (def.variantTiers && def.variantTiers[variant]) || def.tiers;
+    // Compute landing tiers — each tier is { x0_world, x1_world, topY }
+    let tiers;
+    if (tierSrc && tierSrc.length) {
+      tiers = tierSrc.map(t => ({
+        x0: x + (drawnW - def.hitW) / 2 + def.hitW * t.x0,
+        x1: x + (drawnW - def.hitW) / 2 + def.hitW * t.x1,
+        topY: spriteY + def.spriteH * t.topInsetFrac + yOff,
+      }));
+    } else {
+      const hitX = x + (drawnW - def.hitW) / 2;
+      tiers = [{ x0: hitX, x1: hitX + def.hitW, topY: spriteY + def.spriteH * def.topInset + yOff }];
+    }
+    // Highest tier (lowest topY) determines the obstacle's "solid top" for blocking
+    const topY = tiers.reduce((acc, t) => Math.min(acc, t.topY), Infinity);
+    const newObs = {
+      kind, variant, def,
+      x, y: spriteY,
+      w: drawnW,
+      hitX: x + (drawnW - def.hitW)/2,
+      hitW: def.hitW,
+      topY,           // highest tier — used for horizontal blocking
+      tiers,          // all tiers — used for landing
+      sparkTimer: 0,
+      smokeTimer: 0,
+    };
+    obstacles.push(newObs);
+    // Move any pickups that would land under this new obstacle out to its
+    // right side so the player can still grab them.
+    const PAD = 50;
+    for (const pk of pickups) {
+      if (pk.x > newObs.hitX - PAD && pk.x < newObs.hitX + newObs.hitW + PAD) {
+        pk.x = newObs.hitX + newObs.hitW + PAD + 30;
+      }
+    }
+  }
+
+  function updateObstacles(dt) {
+    const cullLeft = game.cameraX - 1200;
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      if (o.x + o.w < cullLeft) { obstacles.splice(i, 1); continue; }
+      // Smoke emitter
+      if (o.def.smoke) {
+        o.smokeTimer -= dt;
+        if (o.smokeTimer <= 0) {
+          o.smokeTimer = rand(0.06, 0.12);
+          const sx = o.x + o.w/2 + rand(-12, 12);
+          const sy = o.y + o.def.spriteH * o.def.smokeAtY;
+          // Smoke puff
+          particles.push({
+            kind:'smoke', x: sx, y: sy,
+            vx: rand(-12, 18), vy: rand(-95, -55),
+            life: rand(1.0, 1.6), maxLife: 1.6,
+            color: Math.random() < 0.4 ? '#ff8a3d' : '#2a2e36',
+            size: rand(14, 24),
+          });
+          // Occasional ember
+          if (Math.random() < 0.45) {
+            particles.push({
+              kind:'spark', x: sx, y: sy + 4,
+              vx: rand(-30, 40), vy: rand(-160, -90),
+              life: rand(0.5, 0.9), maxLife: 0.9,
+              color: '#ffae3d', size: rand(1.4, 2.4),
+            });
+          }
+        }
+      }
+      // Spark emitter (cables, robot pile)
+      if (o.def.sparks) {
+        o.sparkTimer -= dt;
+        if (o.sparkTimer <= 0) {
+          o.sparkTimer = rand(0.25 / o.def.sparkRate, 0.7 / o.def.sparkRate);
+          const sx = o.x + rand(o.w * 0.25, o.w * 0.75);
+          const sy = o.y + o.def.spriteH * (o.kind === 'sparking_cables' ? 0.55 : 0.35);
+          for (let k = 0; k < 5; k++) {
+            particles.push({
+              kind:'spark', x: sx, y: sy,
+              vx: rand(-260, 260), vy: rand(-260, -50),
+              life: rand(0.2, 0.45), maxLife: 0.45,
+              color: k%2 ? '#fff' : (o.kind === 'sparking_cables' ? '#9ad8ff' : '#ffae3d'),
+              size: rand(1.6, 2.6),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  function drawObstacles() {
+    for (const o of obstacles) {
+      const spr = sprites[o.variant];
+      if (!spr) continue;
+      const sx = o.x - game.cameraX;
+      const baseY = o.y + o.def.spriteH;
+      const cx = sx + o.w / 2;
+
+      // Layer 1 — feathered ground shadow.
+      // CIRCULAR radial gradient drawn over a generous rectangle with the canvas
+      // scaled vertically to squash it into an ellipse. No clip path means no
+      // visible ellipse outline — the gradient's transparent edges ARE the
+      // visible boundary.
+      //
+      // Compositor's trick: instead of a single dark peak at the center, hold
+      // a wide plateau of near-full-black across the inner 35% of the radius —
+      // this overlaps and absorbs the asset's built-in elliptical drop shadow
+      // INSIDE the dark zone, hiding its edge. Outside that plateau, feather
+      // gracefully out to fully transparent. Bigger overall radius too.
+      // Wider radius (1.55 — was 1.30) and lower center intensity (0.62
+      // peak — was 0.96) so the shadow extends gracefully outward instead
+      // of stamping a hard dark blob. Less squashed Y scale (0.42) keeps
+      // the downward reach. Net effect: gentler, broader, more believable
+      // contact-shadow that blends into the floor on every side.
+      const shadowR = o.w * 1.55;
+      ctx.save();
+      ctx.translate(cx, baseY + 2);
+      ctx.scale(1, 0.42);
+      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, shadowR);
+      grad.addColorStop(0,    'rgba(0,0,0,0.62)');
+      grad.addColorStop(0.20, 'rgba(0,0,0,0.55)');
+      grad.addColorStop(0.40, 'rgba(0,0,0,0.42)');
+      grad.addColorStop(0.60, 'rgba(0,0,0,0.26)');
+      grad.addColorStop(0.80, 'rgba(0,0,0,0.10)');
+      grad.addColorStop(0.92, 'rgba(0,0,0,0.03)');
+      grad.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(-shadowR * 1.5, -shadowR * 1.5, shadowR * 3.0, shadowR * 3.0);
+      ctx.restore();
+
+      // Layer 2 — draw the obstacle itself with reduced brightness + boosted
+      // contrast so it sits darker, pulling the highlight/shadow values toward
+      // crushed-blacks and away from the over-lit "sticker" look.
+      // Per-obstacle overrides (def.filter / def.yOffset) let individual props
+      // be tuned darker or sunk below the ground line without touching others.
+      ctx.save();
+      // Default filter: lifts the deepest blacks slightly toward gray (like
+      // pulling up the curves toe in Photoshop) so the obstacle reads with
+      // a subtle atmospheric haze instead of crushed pure-black shadows.
+      // Brightness up a hair, contrast eased back, saturation slightly up.
+      ctx.filter = o.def.filter || 'brightness(0.86) contrast(1.04) saturate(0.94)';
+      // Default 14px sink — every obstacle bleeds slightly below the ground
+      // line so the bottom edge feathers into the floor instead of cutting
+      // off in mid-air. Per-obstacle overrides (def.yOffset) take priority.
+      const drawY = o.y + (o.def.yOffset != null ? o.def.yOffset : 14);
+      ctx.drawImage(spr, sx, drawY, o.w, o.def.spriteH);
+      ctx.filter = 'none';
+      ctx.restore();
+
+      // (Previous Layer 3 removed — the rectangular AO gradient was creating
+      // hard left/right edges where the rect extended past the sprite silhouette.
+      // The sprite's baked-in bottom alpha-fade plus the feathered radial
+      // shadow patch underneath now do all the contact-blending.)
+    }
+  }
+
+  // Returns the highest landing surface (smallest Y) the player overlaps,
+  // requiring the player to have been at-or-above that surface last frame
+  // (prevents teleporting up when passing under platforms).
+  function findLandingY(p) {
+    let best = groundY();
+    const lastBottom = (p.lastBottomY !== undefined) ? p.lastBottomY : (p.y + p.h);
+    for (const o of obstacles) {
+      if (!o.def.isPlatform) continue;
+      // Check each tier (single-tier obstacles have one entry covering full width)
+      for (const t of o.tiers) {
+        if (p.x + p.w <= t.x0 || p.x >= t.x1) continue;
+        if (lastBottom <= t.topY + 2 && p.y + p.h >= t.topY && t.topY < best) {
+          best = t.topY;
+        }
+      }
+    }
+    return best;
+  }
+
+  // ============================================================
+  // END OBSTACLE SYSTEM
+  // ============================================================
+
+  // Draw a sprite scaled so its height matches `targetH`, centered horizontally
+  // at `cx`, sitting on the ground at `groundY` (bottom of sprite). If `flip`
+  // is true the sprite is mirrored horizontally.
+  // Reusable offscreen canvas for sprite-shaped color tints. We can't simply
+  // run `source-atop` against the main canvas because that mode paints over
+  // EVERY opaque pixel in the bounding box (including the floor, parallax,
+  // other obstacles drawn before the sprite) — which manifests as a red
+  // rectangle around the character. So we render the sprite + tint into a
+  // small isolated canvas first, then blit that result back to the main one.
+  const _tintCanvas = document.createElement('canvas');
+  const _tintCtx    = _tintCanvas.getContext('2d');
+
+  function drawSpriteOnGround(sprite, cx, groundY, targetH, flip, tint) {
+    if (!sprite) return false;
+    const sw = sprite.naturalWidth  || sprite.width;
+    const sh = sprite.naturalHeight || sprite.height;
+    const scale = targetH / sh;
+    const w = sw * scale, h = targetH;
+    const dx = cx - w/2, dy = groundY - h;
+
+    // Fast path — no tint, just stamp the sprite onto the main canvas.
+    if (!tint || tint.alpha <= 0) {
+      ctx.save();
+      if (flip) {
+        ctx.translate(cx, 0);
+        ctx.scale(-1, 1);
+        ctx.translate(-cx, 0);
+      }
+      ctx.drawImage(sprite, dx, dy, w, h);
+      ctx.restore();
+      return true;
+    }
+
+    // Tinted path — render the sprite into the offscreen canvas, apply the
+    // color overlay clipped to the sprite alpha (source-atop here is safe
+    // because the only thing painted is the sprite itself), then composite
+    // the result onto the main canvas. Flip is handled at the final blit.
+    const iw = Math.max(1, Math.ceil(w));
+    const ih = Math.max(1, Math.ceil(h));
+    if (_tintCanvas.width  < iw) _tintCanvas.width  = iw;
+    if (_tintCanvas.height < ih) _tintCanvas.height = ih;
+    _tintCtx.clearRect(0, 0, _tintCanvas.width, _tintCanvas.height);
+    _tintCtx.drawImage(sprite, 0, 0, iw, ih);
+    _tintCtx.globalCompositeOperation = 'source-atop';
+    _tintCtx.globalAlpha = tint.alpha;
+    _tintCtx.fillStyle = tint.color;
+    _tintCtx.fillRect(0, 0, iw, ih);
+    _tintCtx.globalAlpha = 1;
+    _tintCtx.globalCompositeOperation = 'source-over';
+
+    ctx.save();
+    if (flip) {
+      ctx.translate(cx, 0);
+      ctx.scale(-1, 1);
+      ctx.translate(-cx, 0);
+    }
+    // Source rect = (0,0,iw,ih), dest rect = (dx,dy,w,h). The slight
+    // sub-pixel rounding (iw,ih are ceiled) is invisible at these scales.
+    ctx.drawImage(_tintCanvas, 0, 0, iw, ih, dx, dy, w, h);
+    ctx.restore();
+    return true;
+  }
+
+  // ------------- Input -------------
+  const input = {
+    left: false, right: false, up: false, down: false,
+    jumpPressed: false, jumpReleased: false,
+    shoot: false, shootPressed: false,
+    mouseX: 0, mouseY: 0,
+    switch: 0,
+  };
+
+  const keymap = {
+    'ArrowLeft':'left','KeyA':'left',
+    'ArrowRight':'right','KeyD':'right',
+    'ArrowUp':'up','KeyW':'up','Space':'up',
+    'ArrowDown':'down','KeyS':'down',
+    'KeyJ':'shoot',
+  };
+
+  window.addEventListener('keydown', (e) => {
+    const k = keymap[e.code];
+    if (k) { e.preventDefault();
+      if (k === 'up' && !input.up) input.jumpPressed = true;
+      if (k === 'shoot') input.shootPressed = true;
+      input[k] = true;
+    }
+    if (e.code === 'KeyP') togglePause();
+    if (e.code === 'KeyR') resetRun();
+    if (e.code === 'KeyF') toggleFullscreen();
+    if (e.code === 'Digit1') input.switch = 1;
+    if (e.code === 'Digit2') input.switch = 2;
+    if (e.code === 'Digit3') input.switch = 3;
+    if (e.code === 'Digit4') input.switch = 4;
+  });
+  window.addEventListener('keyup', (e) => {
+    const k = keymap[e.code];
+    if (k) {
+      e.preventDefault();
+      input[k] = false;
+      if (k === 'up') input.jumpReleased = true;
+      if (k === 'shoot') input.shoot = false;
+    }
+  });
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    input.mouseX = e.clientX - r.left;
+    input.mouseY = e.clientY - r.top;
+  });
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 0) { input.shoot = true; input.shootPressed = true; }
+  });
+  canvas.addEventListener('mouseup', (e) => {
+    if (e.button === 0) input.shoot = false;
+  });
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // ------------- Scroll-wheel weapon cycle (PC only) -------------
+  // Cycles through UNLOCKED + AMMO-AVAILABLE weapons in order. Wheel up/
+  // forward = next weapon, wheel down/back = previous. The handler skips
+  // touch devices entirely — mobile users have explicit weapon buttons.
+  canvas.addEventListener('wheel', (e) => {
+    if (typeof isTouchDevice !== 'undefined' && isTouchDevice) return;
+    if (game.state !== 'play') return;
+    e.preventDefault();
+    const order = ['pistol', 'smg', 'rocket'];
+    // Build the list of slots the player can actually switch TO right now.
+    const valid = order.filter(k =>
+      game.weaponsUnlocked && game.weaponsUnlocked[k] &&
+      (k === 'pistol' || (game.ammo && game.ammo[k] > 0))
+    );
+    if (valid.length === 0) return;
+    let idx = valid.indexOf(player.currentWeapon);
+    if (idx === -1) idx = 0;
+    // deltaY > 0 = wheel scrolled DOWN (toward you) → next weapon.
+    // deltaY < 0 = wheel scrolled UP (away from you) → previous weapon.
+    const step = e.deltaY > 0 ? 1 : -1;
+    const next = valid[(idx + step + valid.length) % valid.length];
+    if (next && next !== player.currentWeapon) {
+      // route through the existing switch system so HUD + touch icons
+      // refresh consistently.
+      const slotMap = { pistol: 1, smg: 2, rocket: 3 };
+      input.switch = slotMap[next];
+    }
+  }, { passive: false });
+
+  // ------------- Mobile touch controls -------------
+  const isTouchDevice = (
+    'ontouchstart' in window ||
+    (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+  );
+
+  if (isTouchDevice) {
+    document.body.classList.add('is-touch');
+
+    // --- Mobile zoom-out ---
+    // On phones the action feels too cramped: enemies walk into firing range
+    // before the player has visual confirmation. Shrinking visual sprite
+    // heights ~12% and pulling the camera lead a bit further back gives the
+    // player meaningfully more right-side visibility without breaking
+    // collision math (hitboxes stay the same — they're already smaller than
+    // the visible art).
+    const MOBILE_ZOOM = 0.88;
+    CFG.playerSpriteH = Math.round(CFG.playerSpriteH * MOBILE_ZOOM);
+    for (const k in CFG.enemies) {
+      if (CFG.enemies[k].spriteH) {
+        CFG.enemies[k].spriteH = Math.round(CFG.enemies[k].spriteH * MOBILE_ZOOM);
+      }
+    }
+    // Shrink obstacle visuals + their hit widths so collisions match the new size
+    if (typeof OBSTACLE_DEFS !== 'undefined') {
+      for (const k in OBSTACLE_DEFS) {
+        const d = OBSTACLE_DEFS[k];
+        if (d.spriteH) d.spriteH = Math.round(d.spriteH * MOBILE_ZOOM);
+        if (d.hitW)    d.hitW    = Math.round(d.hitW    * MOBILE_ZOOM);
+      }
+    }
+    CFG.cameraOffsetX = 0.24;   // was 0.30; player sits further left → more right view
+
+    // iOS Safari can't use the Fullscreen API on regular elements. Show a
+    // subtle Add-to-Home-Screen hint on the start screen so users can launch
+    // the game in standalone mode (full-screen, no chrome).
+    const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+                        !window.MSStream &&
+                        !window.matchMedia('(display-mode: standalone)').matches &&
+                        !navigator.standalone;
+    if (isIOSSafari) {
+      const hint = document.getElementById('iosHomeHint');
+      if (hint) hint.style.display = 'block';
+      // If launched from a Home Screen install, hide it forever (just in case).
+      if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+        if (hint) hint.style.display = 'none';
+      }
+    }
+
+    // --- Joystick state ---
+    const stickZone  = document.getElementById('tc-stick-zone');
+    const stickBase  = document.getElementById('tc-stick-base');
+    const stickThumb = document.getElementById('tc-stick-thumb');
+    const aimZone    = document.getElementById('tc-aim-zone');
+    const jumpBtn    = document.getElementById('tc-jump');
+    const pauseBtn   = document.getElementById('tc-pause');
+    const wpnBtns    = document.querySelectorAll('.tc-wbtn');
+
+    const STICK_RADIUS = 64;       // max thumb travel from center
+    const STICK_DEAD   = 14;       // px deadzone before movement registers
+    const STICK_DOWN_T = 0.55;     // sin(angle) threshold for "down" aim
+    let stickTouchId = null;
+    let stickOriginX = 0, stickOriginY = 0;
+
+    function setStickVisual(originX, originY, dx, dy, active) {
+      if (active) {
+        stickBase.style.left  = (originX - 70) + 'px';
+        stickBase.style.top   = (originY - 70) + 'px';
+        stickThumb.style.left = (originX - 32 + dx) + 'px';
+        stickThumb.style.top  = (originY - 32 + dy) + 'px';
+        stickBase.classList.add('active');
+        stickThumb.classList.add('active');
+      } else {
+        stickBase.classList.remove('active');
+        stickThumb.classList.remove('active');
+      }
+    }
+
+    function updateStick(touch) {
+      const rect = stickZone.getBoundingClientRect();
+      let dx = touch.clientX - stickOriginX;
+      let dy = touch.clientY - stickOriginY;
+      const dist = Math.hypot(dx, dy);
+      if (dist > STICK_RADIUS) {
+        dx = dx * STICK_RADIUS / dist;
+        dy = dy * STICK_RADIUS / dist;
+      }
+      // Translate to game input
+      const mag = Math.hypot(dx, dy);
+      if (mag < STICK_DEAD) {
+        input.left = false; input.right = false;
+        input.down = false;
+      } else {
+        input.left  = dx < -STICK_DEAD * 0.7;
+        input.right = dx >  STICK_DEAD * 0.7;
+        // crouch / aim-down when stick is pushed down hard
+        input.down  = (dy / Math.max(1, mag)) > STICK_DOWN_T;
+      }
+      setStickVisual(stickOriginX, stickOriginY, dx, dy, true);
+    }
+
+    function endStick() {
+      stickTouchId = null;
+      input.left = false; input.right = false; input.down = false;
+      setStickVisual(0, 0, 0, 0, false);
+    }
+
+    stickZone.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (stickTouchId !== null) return;
+      const t = e.changedTouches[0];
+      stickTouchId = t.identifier;
+      stickOriginX = t.clientX;
+      stickOriginY = t.clientY;
+      updateStick(t);
+    }, { passive: false });
+
+    stickZone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier === stickTouchId) { updateStick(t); break; }
+      }
+    }, { passive: false });
+
+    function onStickEnd(e) {
+      for (const t of e.changedTouches) {
+        if (t.identifier === stickTouchId) { endStick(); break; }
+      }
+    }
+    stickZone.addEventListener('touchend',    onStickEnd);
+    stickZone.addEventListener('touchcancel', onStickEnd);
+
+    // --- Tap-to-aim/shoot zone ---
+    // A tap on the right zone (away from buttons) sets the aim point in
+    // canvas coords AND triggers a one-shot fire pulse. Dragging updates
+    // the aim point continuously and keeps fire = true while held.
+    let aimTouchId = null;
+
+    function setAimFromTouch(touch) {
+      const r = canvas.getBoundingClientRect();
+      input.mouseX = (touch.clientX - r.left);
+      input.mouseY = (touch.clientY - r.top);
+    }
+
+    aimZone.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (aimTouchId !== null) return;
+      const t = e.changedTouches[0];
+      aimTouchId = t.identifier;
+      setAimFromTouch(t);
+      input.shoot = true;
+      input.shootPressed = true;
+    }, { passive: false });
+
+    aimZone.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        if (t.identifier === aimTouchId) { setAimFromTouch(t); break; }
+      }
+    }, { passive: false });
+
+    function onAimEnd(e) {
+      for (const t of e.changedTouches) {
+        if (t.identifier === aimTouchId) {
+          aimTouchId = null;
+          input.shoot = false;
+          break;
+        }
+      }
+    }
+    aimZone.addEventListener('touchend',    onAimEnd);
+    aimZone.addEventListener('touchcancel', onAimEnd);
+
+    // --- JUMP button ---
+    function pressJump(e) {
+      e.preventDefault();
+      jumpBtn.classList.add('pressed');
+      if (!input.up) input.jumpPressed = true;
+      input.up = true;
+    }
+    function releaseJump(e) {
+      e.preventDefault();
+      jumpBtn.classList.remove('pressed');
+      input.up = false;
+      input.jumpReleased = true;
+    }
+    jumpBtn.addEventListener('touchstart',  pressJump,   { passive: false });
+    jumpBtn.addEventListener('touchend',    releaseJump, { passive: false });
+    jumpBtn.addEventListener('touchcancel', releaseJump, { passive: false });
+
+    // --- Weapon switcher ---
+    wpnBtns.forEach(btn => {
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const n = parseInt(btn.dataset.weapon, 10);
+        if (n) input.switch = n;
+      }, { passive: false });
+    });
+
+    // --- Pause ---
+    pauseBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      togglePause();
+    }, { passive: false });
+
+    // --- Orientation watch ---
+    function checkOrientation() {
+      const portrait = window.matchMedia('(orientation: portrait)').matches;
+      document.body.classList.toggle('is-portrait', portrait);
+    }
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    checkOrientation();
+
+    // --- Suppress page-level gestures while playing ---
+    document.addEventListener('touchmove', (e) => {
+      if (document.body.classList.contains('is-playing')) e.preventDefault();
+    }, { passive: false });
+
+    // Expose a hook for the weapon UI to refresh active/locked state
+    window.refreshTouchWeapons = function() {
+      if (typeof game === 'undefined' || typeof player === 'undefined') return;
+      const map = { 1:'pistol', 2:'smg', 3:'rocket' };
+      wpnBtns.forEach(btn => {
+        const n = parseInt(btn.dataset.weapon, 10);
+        const wkey = map[n];
+        if (!wkey) return;
+        const unlocked = game.weaponsUnlocked && game.weaponsUnlocked[wkey];
+        btn.classList.toggle('locked', !unlocked);
+        btn.classList.toggle('active', player.currentWeapon === wkey);
+      });
+    };
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  // ------------- Game state -------------
+  const game = {
+    state: 'start',          // 'start' | 'play' | 'pause' | 'over'
+    time: 0,
+    cameraX: 0,
+    shake: 0,
+    spawnTimer: 0,
+    nextEnemyAt: 1.5,
+    pickupTimer: 0,
+    nextPickupAt: 8,
+    obstacleTimer: 0,
+    nextObstacleAt: 4.5,
+    bossActive: false,       // boss currently alive in the world
+    bossDefeated: 0,         // count of bosses already defeated this run
+    bossThreshold: 50,       // first boss spawns after 50 kills, then every +50
+    distance: 0,             // m
+    kills: 0,
+    score: 0,
+    combo: 0,
+    comboTimer: 0,
+    best: Number(localStorage.getItem('jn_best') || 0),
+    weaponsUnlocked: { pistol: true, smg: false, rocket: false },
+    ammo: { pistol: Infinity, smg: 0, rocket: 0 },
+  };
+
+  // entity pools
+  let player = null;
+  let bullets = [];
+  let enemies = [];
+  let enemyBullets = [];
+  let pickups = [];
+  let particles = [];
+  let damageNumbers = [];
+  let bgEmbers = [];
+  let bgSparks = [];
+
+  // ------------- Helpers -------------
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+  const lerp  = (a,b,t) => a + (b-a)*t;
+  const rand  = (a,b) => a + Math.random()*(b-a);
+  const choice = arr => arr[(Math.random()*arr.length)|0];
+  const groundY = () => H * CFG.groundFraction;
+
+  function aabb(a,b) {
+    return a.x < b.x+b.w && a.x+a.w > b.x &&
+           a.y < b.y+b.h && a.y+a.h > b.y;
+  }
+
+  // ------------- Player -------------
+  function makePlayer() {
+    return {
+      x: W * CFG.cameraOffsetX,
+      y: groundY() - CFG.playerH,
+      w: CFG.playerW,
+      h: CFG.playerH,
+      vx: 0, vy: 0,
+      onGround: true,
+      facing: 1,                 // 1 right, -1 left
+      jumpsLeft: 1,
+      hp: CFG.playerHpMax,
+      invuln: 0,
+      currentWeapon: 'pistol',
+      fireCooldown: 0,
+      aimAngle: 0,
+      runPhase: 0,
+      hitFlash: 0,
+      muzzleFlash: 0,
+      kickX: 0,                  // visual recoil offset
+    };
+  }
+
+  // ------------- Spawning -------------
+  function chooseEnemyKind() {
+    const r = Math.random();
+    // Skitters only spawn once the player has earned 2 weapon upgrades
+    // (i.e. unlocked shotgun beyond pistol+SMG). They are harder + faster
+    // so they appear at ~22% rate even after unlock — rarer than gunners.
+    // Skitters appear once the player has earned their first weapon upgrade (SMG)
+    const skitterUnlocked = game.weaponsUnlocked.smg;
+    if (skitterUnlocked && r < 0.22) return 'skitter';
+    return 'gunner';
+  }
+
+  function spawnEnemy() {
+    const kind = chooseEnemyKind();
+    const def = CFG.enemies[kind];
+    // Player runs right; enemies should approach FROM THE RIGHT (in front).
+    // Only after 30 kills do we start mixing in left-side spawns (~15%) so
+    // the action escalates without ambushing players from off-screen behind
+    // them at the start of the run.
+    const allowLeftSpawns = game.kills >= 30;
+    const fromRight = allowLeftSpawns ? (Math.random() < 0.85) : true;
+    const x = fromRight ? game.cameraX + W + 60 : game.cameraX - 100;
+    enemies.push({
+      kind,
+      x, y: groundY() - def.h,
+      w: def.w, h: def.h,
+      vx: 0, vy: 0,
+      hp: def.hp, maxHp: def.hp,
+      facing: fromRight ? -1 : 1,
+      onGround: true,
+      hitFlash: 0,
+      attackCooldown: rand(0.3, 1.4),
+      walkPhase: Math.random() * Math.PI*2,
+    });
+  }
+
+  function spawnBoss() {
+    const def = CFG.enemies.boss;
+    const x = game.cameraX + W + 100;
+    // Boss arrives SOLO — clear out every minion currently on screen so the
+    // duel is one-on-one. Their bullets get cleared too so the player isn't
+    // stunlocked the moment the boss appears.
+    enemies.length = 0;
+    enemyBullets.length = 0;
+    // Snapshot ammo + unlocks so we can restore exactly the same loadout
+    // after the boss dies. During the fight, all weapons are unlocked and
+    // ammo is effectively infinite — this is a hero-mode set-piece.
+    game.ammoBeforeBoss = { ...game.ammo };
+    game.unlocksBeforeBoss = { ...game.weaponsUnlocked };
+    game.weaponsUnlocked = { pistol: true, smg: true, rocket: true };
+    game.ammo = { pistol: Infinity, smg: Infinity, rocket: Infinity };
+
+    // ESCALATING DIFFICULTY — each subsequent boss is meaningfully harder.
+    // tier = number of bosses already defeated. Boss #1 → tier 0 (base).
+    // Boss #2 → tier 1 (+25% HP / +12% dmg / -10% fire delay / +5% bullet speed).
+    // Capped so the math doesn't go absurd in a long endless run.
+    const tier = Math.min(game.bossDefeated, 8);
+    const scaledHp     = Math.round(def.hp * (1 + 0.25 * tier));
+    const scaledDmg    = Math.round(def.dmg * (1 + 0.12 * tier));
+    const scaledFireRt = Math.max(0.70, def.fireRate * Math.pow(0.90, tier));
+    const scaledBSpeed = Math.min(1100, def.bulletSpeed * (1 + 0.05 * tier));
+
+    enemies.push({
+      kind: 'boss',
+      x, y: groundY() - def.h,
+      w: def.w, h: def.h,
+      vx: 0, vy: 0,
+      hp: scaledHp, maxHp: scaledHp,
+      // per-enemy stat overrides — read by the AI in updateEnemies
+      dmg: scaledDmg,
+      fireRate: scaledFireRt,
+      bulletSpeed: scaledBSpeed,
+      bossTier: tier,
+      facing: -1,                  // walks toward player from the right
+      onGround: true,
+      hitFlash: 0,
+      attackCooldown: 2.0,
+      walkPhase: 0,
+      shootFlash: 0,               // brief frame-lock to boss_shoot pose right after firing
+    });
+    // Big shake + flash + audio sting to telegraph the encounter
+    game.shake = Math.max(game.shake, 26);
+    const bossLabel = tier === 0 ? 'BOSS' : `BOSS  ×${tier+1}`;
+    flashText(bossLabel, '#ff5a1f', game.cameraX + W*0.5, H*0.4);
+    sfxBossEntry();
+  }
+
+  function spawnPickup(forceType, atX) {
+    // Weighted bag — health drops a lot more often than the others now that
+    // mobile players were finding the run too brutal. health 4×, ammo 2×,
+    // score 2×, weapon 1×. If the player's HP is already > 75 we drop the
+    // health weight back so we don't waste a slot on a full-tank player.
+    let pool = ['health','health','health','health','ammo','ammo','score','score','weapon'];
+    if (typeof player !== 'undefined' && player.hp > 75) {
+      pool = ['health','ammo','ammo','score','score','weapon'];
+    }
+    const t = forceType || choice(pool);
+    let px = atX != null ? atX : game.cameraX + W + 80;
+    // Never spawn a pickup inside an obstacle's footprint — the player can't
+    // walk through obstacles, so anything inside a hit-range is unreachable.
+    // Push the pickup past the obstacle's right edge instead.
+    const PAD = 60;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      let collided = false;
+      for (const o of obstacles) {
+        if (px > o.hitX - PAD && px < o.hitX + o.hitW + PAD) {
+          px = o.hitX + o.hitW + PAD + 30;
+          collided = true;
+          break;
+        }
+      }
+      if (!collided) break;
+    }
+    const def = CFG.pickup[t];
+    let payload = { type: t };
+    if (t === 'weapon') {
+      // Progressive unlock: SMG (assault rifle) → rocket launcher. Once both
+      // are unlocked, refills bias toward SMG with rocket scarce.
+      if (!game.weaponsUnlocked.smg) {
+        payload.weapon = 'smg';
+      } else if (!game.weaponsUnlocked.rocket) {
+        payload.weapon = 'rocket';
+      } else {
+        payload.weapon = Math.random() < 0.7 ? 'smg' : 'rocket';
+      }
+    }
+    pickups.push({
+      x: px, y: groundY() - 32,
+      w: 28, h: 32,
+      vy: 0, color: def.color,
+      bob: Math.random()*Math.PI*2,
+      ...payload,
+    });
+  }
+
+  // ------------- Shooting -------------
+  function tryShoot(dt) {
+    const w = CFG.weapons[player.currentWeapon];
+    player.fireCooldown -= dt;
+    if (!input.shoot || player.fireCooldown > 0) return;
+    if (game.ammo[player.currentWeapon] <= 0 && player.currentWeapon !== 'pistol') {
+      // out of ammo — auto-switch to pistol
+      player.currentWeapon = 'pistol';
+      return;
+    }
+    // Bullet origin = the actual rifle muzzle in the SPRITE, not the hitbox.
+    // chestY = 72% up from sprite base lands at upper chest / shoulder where
+    // the rifle is held in hero_shoot.png. The muzzle then projects forward
+    // along the aim direction by ~38% of sprite height (= rifle barrel length).
+    const playerBottom = player.y + player.h;
+    const chestX = player.x + player.w * 0.5;
+    const chestY = playerBottom - CFG.playerSpriteH * 0.84;
+    const wx = input.mouseX + game.cameraX;
+    const wy = input.mouseY;
+    let baseAng = Math.atan2(wy - chestY, wx - chestX);
+    player.aimAngle = baseAng;
+    player.facing = (Math.cos(baseAng) >= 0) ? 1 : -1;
+
+    const muzzleReach = CFG.playerSpriteH * 0.38;
+    const mx = chestX + Math.cos(baseAng) * muzzleReach;
+    const my = chestY + Math.sin(baseAng) * muzzleReach;
+    // Stash for muzzle flash render
+    player.muzzleX = mx;
+    player.muzzleY = my;
+
+    for (let i=0; i<w.pellets; i++) {
+      const ang = baseAng + (Math.random()*2-1) * w.spread;
+      bullets.push({
+        x: mx,
+        y: my,
+        vx: Math.cos(ang) * w.bulletSpeed,
+        vy: Math.sin(ang) * w.bulletSpeed,
+        life: CFG.bulletLife,
+        damage: w.damage,
+        color: w.color,
+        kind: w.explosive ? 'rocket' : 'bullet',
+        weapon: player.currentWeapon,
+        explosive: !!w.explosive,
+        explosionRadius: w.explosionRadius || 0,
+        explosionDmg: w.explosionDmg || 0,
+        trailEvery: w.tracer || 0,
+        trailTimer: 0,
+      });
+    }
+    // muzzle flash + recoil
+    player.muzzleFlash = 0.06;
+    player.kickX = -player.facing * w.kick * 0.05;
+    game.shake = Math.max(game.shake, w.recoil);
+    if (game.ammo[player.currentWeapon] !== Infinity) {
+      game.ammo[player.currentWeapon] = Math.max(0, game.ammo[player.currentWeapon] - 1);
+    }
+    player.fireCooldown = w.fireRate;
+    sfxShoot(player.currentWeapon);
+  }
+
+  function explodeAt(x, y, radius, dmg, color) {
+    sfxExplosion();
+    // shockwave ring — outer fast sparks
+    for (let i=0; i<56; i++) {
+      const a = (i/56) * Math.PI*2;
+      particles.push({
+        kind:'spark',
+        x, y,
+        vx: Math.cos(a)*rand(280, 560),
+        vy: Math.sin(a)*rand(280, 560),
+        life: rand(0.3, 0.65), maxLife: 0.65,
+        color: i%3===0 ? '#fff' : (i%3===1 ? '#ffb02e' : '#ff5a1f'),
+        size: rand(2.5,5),
+      });
+    }
+    // chunky debris that gets thrown
+    for (let i=0; i<22; i++) {
+      particles.push({
+        kind:'debris',
+        x: x + rand(-8,8), y: y + rand(-8,8),
+        vx: rand(-360,360), vy: rand(-460,-100),
+        life: rand(0.7, 1.0), maxLife: 1.0,
+        color: i%2 ? '#3a3f4a' : '#ff7a3d',
+        size: rand(4,9), rot: rand(0,Math.PI*2), vrot: rand(-12,12),
+      });
+    }
+    // big rolling fireball smoke
+    for (let i=0; i<26; i++) {
+      particles.push({
+        kind:'smoke',
+        x: x + rand(-22,22), y: y + rand(-22,22),
+        vx: rand(-60,60), vy: rand(-130,-40),
+        life: rand(0.8,1.4), maxLife: 1.4,
+        color: i<10 ? '#ffae3d' : '#363a44',
+        size: rand(18,36),
+      });
+    }
+    // central white-hot flash
+    particles.push({ kind:'flash', x, y, life: 0.28, maxLife: 0.28, size: radius*1.6, color:'#fff7d6' });
+    // secondary flash
+    particles.push({ kind:'flash', x, y, life: 0.16, maxLife: 0.16, size: radius*0.8, color:'#fff' });
+    game.shake = Math.max(game.shake, 24);
+    // splash damage
+    for (const e of enemies) {
+      const ex = e.x + e.w/2, ey = e.y + e.h/2;
+      const d = Math.hypot(ex - x, ey - y);
+      if (d < radius && e.hp > 0) {
+        const fall = 1 - d/radius;
+        damageEnemy(e, dmg * fall, x, y, true);
+      }
+    }
+  }
+
+  function damageEnemy(e, dmg, srcX, srcY, fromExplosion) {
+    if (e.hp <= 0 || e.dying) return;
+    const def = CFG.enemies[e.kind];
+    const hpBefore = e.hp;
+    e.hp -= dmg;
+    e.hitFlash = 0.12;
+    // Boss-fight balancing: when the boss drops below 50% HP for the first
+    // time, the hero gets a full heal as a comeback reward. One-shot per
+    // boss instance — prevents abuse via incremental hits.
+    if (def.isBoss && !e.healAwarded && hpBefore > e.maxHp * 0.5 && e.hp <= e.maxHp * 0.5) {
+      e.healAwarded = true;
+      player.hp = CFG.playerHpMax;
+      flashText('+HEAL', '#2bd66e', player.x, player.y - 30);
+      // small green particle burst around hero
+      for (let i=0; i<22; i++) {
+        particles.push({
+          kind:'spark',
+          x: player.x + player.w/2 + rand(-30,30),
+          y: player.y + player.h/2 + rand(-40,40),
+          vx: rand(-200,200), vy: rand(-260,-60),
+          life: rand(0.4, 0.8), maxLife: 0.8,
+          color: '#2bd66e', size: rand(2,3.5),
+        });
+      }
+    }
+    damageNumbers.push({ x: e.x + e.w/2, y: e.y, vx: rand(-20,20), vy: -120, life: 0.7, text: Math.ceil(dmg), color:'#fff' });
+    // hit sparks
+    for (let i=0;i<6;i++){
+      particles.push({
+        kind:'spark', x: e.x+e.w/2, y: e.y+e.h*0.35,
+        vx: rand(-220,220), vy: rand(-260,80),
+        life: rand(0.18,0.35), maxLife:0.35,
+        color: i%2 ? '#ffe06a' : '#ffb02e', size: rand(1.5,3),
+      });
+    }
+    if (e.hp <= 0) killEnemy(e, srcX, srcY, fromExplosion);
+  }
+
+  function killEnemy(e, srcX, srcY, fromExplosion) {
+    if (e.dying) return;            // already dying, ignore double-kill
+    const def = CFG.enemies[e.kind];
+    e.dying = true;
+    e.deathT = 0;
+    e.deathDuration = 0.55;
+    e.deathTilt = (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random()*0.4);  // radians at end
+    game.kills += 1;
+    game.combo += 1;
+    game.comboTimer = 2.4;
+    const mult = 1 + Math.min(game.combo, 20)*0.08;
+    const gained = Math.round(def.score * mult);
+    game.score += gained;
+    damageNumbers.push({ x: e.x + e.w/2, y: e.y - 6, vx:0, vy:-90, life: 1.0, text: '+'+gained, color:'#ffd84d', big:true });
+    // robot explosion: debris + smoke + flash
+    const cx = e.x + e.w/2, cy = e.y + e.h/2;
+    for (let i=0;i<20+def.hp*2;i++){
+      particles.push({
+        kind:'debris',
+        x: cx + rand(-10,10), y: cy + rand(-10,10),
+        vx: rand(-260,260), vy: rand(-360,-80),
+        life: rand(0.6, CFG.debrisLife), maxLife: CFG.debrisLife,
+        color: i%2 ? def.color : def.accent,
+        size: rand(3,7), rot: rand(0,Math.PI*2), vrot: rand(-10,10),
+      });
+    }
+    for (let i=0;i<10;i++){
+      particles.push({
+        kind:'smoke',
+        x: cx + rand(-12,12), y: cy + rand(-8,8),
+        vx: rand(-40,40), vy: rand(-110,-30),
+        life: rand(0.5,1.0), maxLife: 1.0,
+        color:'#2a2e36', size: rand(10,22),
+      });
+    }
+    for (let i=0;i<14;i++){
+      particles.push({
+        kind:'spark',
+        x: cx, y: cy,
+        vx: Math.cos(i*Math.PI/7)*rand(180,360),
+        vy: Math.sin(i*Math.PI/7)*rand(180,360) - 60,
+        life: rand(0.2,0.45), maxLife:0.45,
+        color: i%2 ? '#fff' : '#ffae3d', size: rand(2,4),
+      });
+    }
+    particles.push({ kind:'flash', x: cx, y: cy, life: 0.16, maxLife: 0.16, size: e.w*1.2, color:'#fff' });
+    game.shake = Math.max(game.shake, e.kind === 'heavy' ? 20 : 8);
+    // chance to drop a pickup
+    const dropChance = e.kind === 'boss' ? 1.0 : (e.kind === 'heavy' ? 0.85 : (e.kind === 'gunner' ? 0.35 : 0.12));
+    if (Math.random() < dropChance) {
+      const types = e.kind === 'boss' ? ['weapon','health','weapon'] : ['health','ammo','ammo','score','weapon'];
+      spawnPickup(choice(types), cx);
+    }
+    // Boss-specific: clear the active flag so a new boss can spawn later
+    if (e.kind === 'boss') {
+      game.bossActive = false;
+      game.bossDefeated += 1;
+      game.shake = Math.max(game.shake, 30);
+      flashText('BOSS DOWN', '#2bd66e', e.x + e.w/2, e.y - 20);
+      sfxExplosion();
+      // Restore the player's pre-boss loadout — back to normal ammo + the
+      // weapon unlocks they had before the encounter.
+      if (game.ammoBeforeBoss) {
+        game.ammo = game.ammoBeforeBoss;
+        game.ammoBeforeBoss = null;
+      }
+      if (game.unlocksBeforeBoss) {
+        game.weaponsUnlocked = game.unlocksBeforeBoss;
+        game.unlocksBeforeBoss = null;
+      }
+      // Show continue-or-end choice after a brief beat
+      setTimeout(() => {
+        if (game.state === 'play') showContinueChoice();
+      }, 1400);
+    }
+    sfxRobotDeath();
+  }
+
+  // ------------- Update loop -------------
+  function update(dt) {
+    if (game.state !== 'play') return;
+    game.time += dt;
+    game.distance += Math.max(0, player.vx) * dt / CFG.pixelsPerMeter;
+
+    updatePlayer(dt);
+    tryShoot(dt);
+    updateBullets(dt);
+    updateEnemies(dt);
+    updateEnemyBullets(dt);
+    updatePickups(dt);
+    updateParticles(dt);
+    updateDamageNums(dt);
+    updateBackground(dt);
+
+    // weapon switch
+    if (input.switch) {
+      const map = { 1:'pistol', 2:'smg', 3:'rocket' };
+      const target = map[input.switch];
+      if (target && game.weaponsUnlocked[target] && (game.ammo[target] > 0 || target === 'pistol')) {
+        player.currentWeapon = target;
+      }
+      input.switch = 0;
+    }
+
+    // spawners — paused while boss is on screen so the duel is solo
+    game.spawnTimer += dt;
+    if (!game.bossActive && game.spawnTimer >= game.nextEnemyAt) {
+      spawnEnemy();
+      game.spawnTimer = 0;
+      // spawn rate ramps over time
+      const ramp = clamp(1 - game.time/180, 0.45, 1);
+      game.nextEnemyAt = rand(CFG.enemyEveryMin*ramp, CFG.enemyEveryMax*ramp);
+    }
+    game.pickupTimer += dt;
+    if (game.pickupTimer >= game.nextPickupAt) {
+      spawnPickup();
+      game.pickupTimer = 0;
+      game.nextPickupAt = rand(CFG.pickupEveryMin, CFG.pickupEveryMax);
+    }
+    // Boss spawn — scripted event, not random. First boss appears at threshold,
+    // then rises by +50 kills for each subsequent boss (escalating difficulty).
+    if (!game.bossActive && !game.awaitingContinueChoice) {
+      const threshold = game.bossThreshold * (game.bossDefeated + 1);   // 70, 140, 210, ...
+      if (game.kills >= threshold) {
+        spawnBoss();
+        game.bossActive = true;
+      }
+    }
+    // Obstacles — irregular spacing, balanced cadence (not too dense, not too sparse).
+    // At default walk speed 460px/s, 3.5–6.5s gap = ~1600–3000px = roughly one
+    // obstacle every 1–2 screen widths. Player has time to engage with each.
+    game.obstacleTimer += dt;
+    if (game.obstacleTimer >= game.nextObstacleAt) {
+      spawnObstacle();
+      game.obstacleTimer = 0;
+      game.nextObstacleAt = rand(3.5, 6.5);
+    }
+    updateObstacles(dt);
+
+    // combo decay
+    game.comboTimer = Math.max(0, game.comboTimer - dt);
+    if (game.comboTimer === 0) game.combo = 0;
+
+    // camera follow — but during a boss fight we lock the camera in place
+    // so the player can't outrun the boss off-screen. The arena freezes
+    // until the boss is defeated (or the player dies).
+    if (!game.bossActive) {
+      const targetCam = player.x - W * CFG.cameraOffsetX;
+      game.cameraX = lerp(game.cameraX, targetCam, 1 - Math.exp(-CFG.cameraLerp*dt));
+    }
+    // Player containment during boss fight — clamp player to the visible
+    // arena so they can't run past the boss to the right or fall off the
+    // left side of the camera window.
+    if (game.bossActive) {
+      const arenaLeft  = game.cameraX + 30;
+      const arenaRight = game.cameraX + W - player.w - 30;
+      if (player.x < arenaLeft)  { player.x = arenaLeft;  if (player.vx < 0) player.vx = 0; }
+      if (player.x > arenaRight) { player.x = arenaRight; if (player.vx > 0) player.vx = 0; }
+    }
+    game.shake = Math.max(0, game.shake - 60*dt);
+
+    // game over
+    if (player.hp <= 0) {
+      gameOver();
+    }
+
+    // reset edge triggers
+    input.jumpPressed = false;
+    input.jumpReleased = false;
+    input.shootPressed = false;
+  }
+
+  function updatePlayer(dt) {
+    const p = player;
+    // horizontal input
+    let ax = 0;
+    if (input.left)  ax -= CFG.walkAccel * (p.onGround ? 1 : CFG.airControl);
+    if (input.right) ax += CFG.walkAccel * (p.onGround ? 1 : CFG.airControl);
+    p.vx += ax * dt;
+    if (ax === 0 && p.onGround) p.vx *= Math.exp(-CFG.walkDrag * dt);
+    p.vx = clamp(p.vx, -CFG.walkMaxSpeed, CFG.walkMaxSpeed);
+
+    // jump (with double-jump)
+    if (input.jumpPressed) {
+      if (p.onGround) { p.vy = CFG.jumpVelocity; p.onGround = false; p.jumpsLeft = 1; sfxJump(); }
+      else if (p.jumpsLeft > 0) { p.vy = CFG.doubleJumpVelocity; p.jumpsLeft -= 1; sfxJump(); }
+    }
+    // gravity
+    p.vy += CFG.gravity * dt;
+    p.vy = Math.min(p.vy, CFG.maxFallSpeed);
+
+    // Apply X with obstacle collision.
+    //
+    // Every obstacle blocks horizontal movement when the player is on the
+    // ground — you can't walk through anything (the sparking cables sprite
+    // sits at ground level so its topY equals groundY, which makes the
+    // isBelow check naturally fail and lets the hero step over them — no
+    // special-case needed).
+    //
+    // For PLATFORMS specifically, the block is dropped while the player is
+    // airborne — that lets the hero jump-up alongside the platform side and
+    // land on top, instead of bouncing off mid-rise. For BLOCKS (burning_wreck)
+    // the wall stays solid in air too — must be cleared with a real jump.
+    const prevX = p.x;
+    p.x += p.vx * dt;
+    for (const o of obstacles) {
+      // Per-TIER horizontal blocking. Previously we used the obstacle's
+      // global highest topY (o.topY) for the wall check, which meant a
+      // multi-tier obstacle like cargo_crates blocked across its entire
+      // hitW even when the player was already standing on one of its
+      // lower tiers — visible as "pushed sideways off the container".
+      // Each tier is its own discrete wall now: it only blocks within
+      // its own x0..x1 range AND only when player feet are below ITS topY.
+      for (const t of o.tiers) {
+        const overlapX = p.x + p.w > t.x0 && p.x < t.x1;
+        if (!overlapX) continue;
+        const isBelow = (p.y + p.h) > (t.topY + 6);
+        if (!isBelow) continue;
+        // Platforms: phase through the side while airborne so the hero can
+        // rise up alongside, then land on top via findLandingY.
+        if (o.def.isPlatform && !p.onGround) continue;
+        // Push back to before contact, against THIS tier's edge.
+        if (p.vx > 0)      p.x = t.x0 - p.w;
+        else if (p.vx < 0) p.x = t.x1;
+        else               p.x = prevX;
+        p.vx = 0;
+        break;     // resolved against one tier — no need to check others on this obstacle
+      }
+    }
+    p.y += p.vy * dt;
+
+    // Ground collision — picks the highest landing surface (main floor or any
+    // platform) the player overlaps and is descending toward.
+    const gy = findLandingY(p);
+    if (p.y + p.h >= gy) {
+      p.y = gy - p.h;
+      p.vy = 0;
+      if (!p.onGround) {
+        for (let i=0;i<8;i++) {
+          particles.push({
+            kind:'dust', x: p.x + p.w/2 + rand(-12,12), y: gy,
+            vx: rand(-80,80), vy: rand(-40,-10), life: rand(0.3,0.5), maxLife:0.5,
+            color:'rgba(180,170,150,0.7)', size: rand(5,10),
+          });
+        }
+      }
+      p.onGround = true;
+      p.jumpsLeft = 1;
+    } else p.onGround = false;
+    // Stash bottom Y for next-frame platform crossing detection
+    p.lastBottomY = p.y + p.h;
+
+    // running anim phase
+    if (p.onGround && Math.abs(p.vx) > 30) p.runPhase += dt * (Math.abs(p.vx)*0.04);
+    else p.runPhase *= 0.94;
+
+    // facing (mouse drives this when shooting; otherwise velocity)
+    if (Math.abs(p.vx) > 30 && !input.shoot) p.facing = p.vx > 0 ? 1 : -1;
+
+    // visual recoil decay
+    p.kickX *= Math.exp(-8*dt);
+    p.muzzleFlash = Math.max(0, p.muzzleFlash - dt);
+    p.hitFlash = Math.max(0, p.hitFlash - dt);
+    p.invuln = Math.max(0, p.invuln - dt);
+  }
+
+  function updateBullets(dt) {
+    for (let i=bullets.length-1; i>=0; i--) {
+      const b = bullets[i];
+      // Rockets arc — gravity affects them, while bullets fly straight
+      if (b.kind === 'rocket') {
+        b.vy += 380 * dt;        // arc downward
+        b.rot = Math.atan2(b.vy, b.vx); // nose points along velocity
+      }
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.life -= dt;
+      // Continuous smoke trail behind rockets (denser than tracer)
+      if (b.kind === 'rocket') {
+        b.trailTimer -= dt;
+        if (b.trailTimer <= 0) {
+          b.trailTimer = 0.018;
+          const ang = b.rot || 0;
+          // grey smoke puff trailing the rocket
+          particles.push({
+            kind:'smoke',
+            x: b.x - Math.cos(ang)*14, y: b.y - Math.sin(ang)*14,
+            vx: rand(-15,15), vy: rand(-30,5),
+            life: rand(0.4,0.7), maxLife: 0.7,
+            color: '#3a3f4a', size: rand(8,14),
+          });
+          // bright spark for the propellant
+          particles.push({
+            kind:'spark',
+            x: b.x - Math.cos(ang)*10, y: b.y - Math.sin(ang)*10,
+            vx: -Math.cos(ang)*120 + rand(-40,40), vy: -Math.sin(ang)*120 + rand(-40,40),
+            life: 0.18, maxLife: 0.18,
+            color: '#ffae3d', size: rand(2,3),
+          });
+        }
+      }
+      // bullet tracer trail
+      else if (b.trailEvery > 0) {
+        b.trailTimer -= dt;
+        if (b.trailTimer <= 0) {
+          b.trailTimer = b.trailEvery;
+          particles.push({
+            kind:'tracer', x: b.x, y: b.y,
+            vx: 0, vy: 0,
+            life: 0.18, maxLife: 0.18,
+            color: b.color, size: 2.5,
+          });
+        }
+      }
+      // ground/ceiling
+      if (b.y >= groundY() || b.y < 0 || b.life <= 0) {
+        if (b.explosive && b.y >= groundY()) explodeAt(b.x, groundY()-4, b.explosionRadius, b.explosionDmg);
+        bullets.splice(i,1);
+        continue;
+      }
+      // enemy hit
+      let hit = false;
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        if (b.x > e.x && b.x < e.x+e.w && b.y > e.y && b.y < e.y+e.h) {
+          if (b.explosive) {
+            explodeAt(b.x, b.y, b.explosionRadius, b.explosionDmg);
+          } else {
+            damageEnemy(e, b.damage, b.x, b.y, false);
+          }
+          hit = true;
+          break;
+        }
+      }
+      if (hit) bullets.splice(i,1);
+    }
+  }
+
+  function updateEnemies(dt) {
+    const cullLeft = game.cameraX - 240;
+    const cullRight = game.cameraX + W + 600;
+    // Pre-30-kills, bots that have been outrun and are now to the LEFT of
+    // the player despawn — keeps the action focused in front of the player
+    // and prevents off-screen-left gunfire while the user is still learning.
+    // Boss is always exempt (he's a scripted encounter).
+    const earlyGameLeftCull = (game.kills < 30) ? (player.x - 60) : null;
+    for (let i=enemies.length-1;i>=0;i--) {
+      const e = enemies[i];
+      if (earlyGameLeftCull !== null && e.kind !== 'boss' && !e.dying && e.x + e.w < earlyGameLeftCull) {
+        enemies.splice(i,1);
+        continue;
+      }
+      // dying bots play out their death animation in place, then despawn
+      if (e.dying) {
+        e.deathT += dt;
+        // continuous spark eruptions for the first half of the death anim
+        if (Math.random() < 0.6 && e.deathT < e.deathDuration*0.7) {
+          const cx = e.x + e.w/2, cy = e.y + e.h*0.45;
+          for (let k=0; k<3; k++) {
+            particles.push({
+              kind:'spark', x:cx + rand(-10,10), y:cy + rand(-10,10),
+              vx: rand(-300,300), vy: rand(-360,-40),
+              life: rand(0.18,0.4), maxLife: 0.4,
+              color: k%2 ? '#fff' : '#ffae3d', size: rand(2,3.5),
+            });
+          }
+        }
+        if (e.deathT >= e.deathDuration) enemies.splice(i,1);
+        continue;
+      }
+      if (e.hp <= 0) { enemies.splice(i,1); continue; }
+      const def = CFG.enemies[e.kind];
+      // chase player
+      const dir = player.x > e.x ? 1 : -1;
+      if (def.isBoss) {
+        // Boss now turns to face the player when they cross past — but with
+        // a hysteresis dead-zone (60px) so we don't flip-flop the sprite
+        // when the player is hovering right at the boss's X position.
+        const dx = (player.x + player.w*0.5) - (e.x + e.w*0.5);
+        if (Math.abs(dx) > 60) e.facing = dx > 0 ? 1 : -1;
+      } else {
+        e.facing = dir;
+      }
+      const dist = Math.abs((player.x+player.w/2) - (e.x+e.w/2));
+      if (def.ranged) {
+        // gunners hold a stand-off distance and shoot
+        const stand = 320;
+        // Boss gets a speed multiplier that scales with distance — if the
+        // player runs to one side of the arena, the boss accelerates to
+        // close the gap so he can never be left behind off-screen.
+        let speedMult = 1;
+        if (def.isBoss) speedMult = 1 + Math.min(2.5, Math.max(0, (dist - stand) / 200));
+        if (dist > stand + 30) e.x += dir * def.speed * speedMult * dt;
+        else if (dist < stand - 30) e.x -= dir * def.speed * 0.6 * dt;
+        // Keep the boss clamped inside the visible arena no matter what.
+        if (def.isBoss) {
+          const arenaLeftBoss  = game.cameraX + 80;
+          const arenaRightBoss = game.cameraX + W - e.w - 80;
+          if (e.x < arenaLeftBoss)  e.x = arenaLeftBoss;
+          if (e.x > arenaRightBoss) e.x = arenaRightBoss;
+        }
+        e.attackCooldown -= dt;
+        if (e.attackCooldown <= 0 && dist < 700 && game.state==='play') {
+          // Per-enemy stat overrides (set on boss spawn) fall back to def.
+          const fireRate    = e.fireRate    != null ? e.fireRate    : def.fireRate;
+          const bulletSpeed = e.bulletSpeed != null ? e.bulletSpeed : def.bulletSpeed;
+          const bulletDmg   = e.dmg         != null ? e.dmg         : def.dmg;
+          e.attackCooldown = fireRate;
+          if (def.isBoss) e.shootFlash = 0.45;   // lock to boss_shoot pose for ~0.45s
+          const sx = e.x + e.w*0.5, sy = e.y + e.h*0.4;
+          const tx = player.x + player.w*0.5, ty = player.y + player.h*0.45;
+          const a = Math.atan2(ty - sy, tx - sx);
+          enemyBullets.push({
+            x: sx, y: sy,
+            vx: Math.cos(a)*bulletSpeed,
+            vy: Math.sin(a)*bulletSpeed,
+            life: 1.6, dmg: bulletDmg, color: def.accent,
+          });
+          // muzzle flash particle
+          particles.push({ kind:'flash', x:sx + Math.cos(a)*22, y:sy + Math.sin(a)*22, life:0.08, maxLife:0.08, size: 30, color:def.accent });
+        }
+      } else {
+        e.x += dir * def.speed * dt;
+        // melee swipe
+        if (dist < def.melee + e.w/2 && player.invuln <= 0 && game.state==='play') {
+          e.attackCooldown -= dt;
+          if (e.attackCooldown <= 0) {
+            damagePlayer(def.dmg, dir);
+            e.attackCooldown = 0.9;
+          }
+        }
+      }
+      // walk anim
+      e.walkPhase += dt * 11;   // marching cadence — toggle pose ~every 0.28s
+      if (e.shootFlash !== undefined && e.shootFlash > 0) e.shootFlash -= dt;
+      e.hitFlash = Math.max(0, e.hitFlash - dt);
+      // gravity (mostly ground-locked but heavy can stomp)
+      e.y = groundY() - def.h;
+      // off-screen left cull
+      if (e.x < cullLeft || e.x > cullRight) {
+        // only despawn if very far behind (player passed)
+        if (e.x < cullLeft - 200 || e.x > cullRight + 600) enemies.splice(i,1);
+      }
+    }
+  }
+
+  function updateEnemyBullets(dt) {
+    for (let i=enemyBullets.length-1;i>=0;i--) {
+      const b = enemyBullets[i];
+      b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+      // tracer
+      if (Math.random() < 0.5) {
+        particles.push({ kind:'tracer', x:b.x, y:b.y, vx:0, vy:0, life:0.14, maxLife:0.14, color:b.color, size:2 });
+      }
+      if (b.life <= 0 || b.y >= groundY() || b.y < 0) { enemyBullets.splice(i,1); continue; }
+      // hit player
+      if (player.invuln <= 0 &&
+          b.x > player.x && b.x < player.x+player.w &&
+          b.y > player.y && b.y < player.y+player.h) {
+        damagePlayer(b.dmg, b.vx > 0 ? 1 : -1);
+        enemyBullets.splice(i,1);
+      }
+    }
+  }
+
+  function damagePlayer(amt, fromDir) {
+    if (player.invuln > 0) return;
+    player.hp = Math.max(0, player.hp - amt);
+    player.invuln = CFG.invulnTime;
+    sfxHurt();
+    player.hitFlash = 0.25;
+    player.vx = -fromDir * 240;
+    player.vy = -260;
+    game.shake = Math.max(game.shake, 14);
+    game.combo = 0;
+    // hit particles
+    for (let i=0;i<10;i++){
+      particles.push({
+        kind:'spark', x:player.x+player.w/2, y:player.y+player.h/2,
+        vx:rand(-260,260), vy:rand(-260,40),
+        life:rand(0.25,0.45), maxLife:0.45,
+        color:'#ff5a1f', size:rand(2,4),
+      });
+    }
+  }
+
+  function updatePickups(dt) {
+    for (let i=pickups.length-1;i>=0;i--) {
+      const p = pickups[i];
+      p.bob += dt*4;
+      // pickup collide
+      if (aabb(player, { x:p.x-4, y:p.y-4, w:p.w+8, h:p.h+8 })) {
+        applyPickup(p);
+        pickups.splice(i,1);
+        continue;
+      }
+      if (p.x < game.cameraX - 200) pickups.splice(i,1);
+    }
+  }
+
+  function applyPickup(p) {
+    sfxPickup();
+    if (p.type === 'health') {
+      player.hp = Math.min(CFG.playerHpMax, player.hp + CFG.pickup.health.amount);
+      flashText('+HP', '#2bd66e', player.x+player.w/2, player.y);
+    } else if (p.type === 'ammo') {
+      // refill current weapon (or grant pistol overflow as score)
+      const cw = player.currentWeapon;
+      if (cw === 'pistol') {
+        // pick smg if locked-ish, else just score
+        game.score += 25;
+        flashText('+25', '#ffd84d', player.x+player.w/2, player.y);
+      } else {
+        const max = CFG.weapons[cw].ammoMax;
+        game.ammo[cw] = Math.min(max, game.ammo[cw] + Math.ceil(max*0.5));
+        flashText('+AMMO', '#ffd84d', player.x+player.w/2, player.y);
+      }
+    } else if (p.type === 'weapon') {
+      const w = p.weapon;
+      game.weaponsUnlocked[w] = true;
+      const max = CFG.weapons[w].ammoMax;
+      game.ammo[w] = max;
+      player.currentWeapon = w;
+      flashText(CFG.weapons[w].name, CFG.weapons[w].color, player.x+player.w/2, player.y);
+    } else if (p.type === 'score') {
+      game.score += CFG.pickup.score.amount;
+      flashText('+'+CFG.pickup.score.amount, '#9ad8ff', player.x+player.w/2, player.y);
+    }
+    // poof
+    for (let i=0;i<10;i++){
+      particles.push({
+        kind:'spark', x:p.x+p.w/2, y:p.y+p.h/2,
+        vx:rand(-160,160), vy:rand(-220,-40),
+        life:rand(0.3,0.5), maxLife:0.5,
+        color:p.color, size:rand(2,3.5),
+      });
+    }
+  }
+
+  function flashText(txt, color, x, y) {
+    damageNumbers.push({ x, y, vx: 0, vy: -90, life: 0.9, text: txt, color, big: true });
+  }
+
+  function updateParticles(dt) {
+    for (let i=particles.length-1;i>=0;i--) {
+      const p = particles[i];
+      p.life -= dt;
+      if (p.kind === 'flash') { if (p.life <= 0) particles.splice(i,1); continue; }
+      p.x += (p.vx||0)*dt;
+      p.y += (p.vy||0)*dt;
+      if (p.kind === 'smoke') { p.vy *= 0.96; p.vx *= 0.96; p.size += 22*dt; }
+      else if (p.kind === 'debris') { p.vy += 1100*dt; p.rot += (p.vrot||0)*dt; if (p.y >= groundY()-2) { p.vy *= -0.32; p.vx *= 0.55; p.y = groundY()-2; } }
+      else if (p.kind === 'spark') { p.vy += 600*dt; p.vx *= 0.99; }
+      else if (p.kind === 'dust') { p.vy += 50*dt; p.vx *= 0.94; }
+      if (p.life <= 0) particles.splice(i,1);
+    }
+  }
+
+  function updateDamageNums(dt) {
+    for (let i=damageNumbers.length-1;i>=0;i--) {
+      const d = damageNumbers[i];
+      d.life -= dt;
+      d.x += d.vx*dt;
+      d.y += d.vy*dt;
+      d.vy += 120*dt;
+      if (d.life <= 0) damageNumbers.splice(i,1);
+    }
+  }
+
+  function updateBackground(dt) {
+    // embers
+    const want = CFG.embersPerSec * dt;
+    let n = Math.floor(want);
+    if (Math.random() < (want - n)) n++;
+    for (let i=0;i<n;i++) {
+      bgEmbers.push({
+        x: game.cameraX + rand(-50, W+50),
+        y: H + rand(-20, 40),
+        vx: rand(-15, 25),
+        vy: rand(-90, -30),
+        life: rand(2.5, 5.5), maxLife: 5.5,
+        size: rand(1.2, 2.4),
+        flicker: rand(0,Math.PI*2),
+      });
+    }
+    for (let i=bgEmbers.length-1;i>=0;i--){
+      const e = bgEmbers[i];
+      e.life -= dt;
+      e.x += e.vx*dt;
+      e.y += e.vy*dt;
+      e.flicker += dt*8;
+      if (e.life <= 0) bgEmbers.splice(i,1);
+    }
+    // sparks from bg cables
+    if (Math.random() < CFG.sparkChancePerSec * dt * 60) {
+      const sx = game.cameraX + rand(0, W);
+      const sy = rand(H*0.2, H*0.55);
+      for (let k=0;k<6;k++) {
+        bgSparks.push({
+          x:sx, y:sy,
+          vx: rand(-180,180), vy: rand(-50, 240),
+          life: rand(0.25,0.5), maxLife: 0.5,
+          color: k%2 ? '#fff' : '#ffd84d', size: rand(1.2, 2.2),
+        });
+      }
+    }
+    for (let i=bgSparks.length-1;i>=0;i--){
+      const s = bgSparks[i];
+      s.life -= dt;
+      s.vy += 600*dt;
+      s.x += s.vx*dt;
+      s.y += s.vy*dt;
+      if (s.life <= 0) bgSparks.splice(i,1);
+    }
+  }
+
+  // ------------- Render -------------
+  function render() {
+    // shake
+    const shx = (Math.random()*2-1) * game.shake;
+    const shy = (Math.random()*2-1) * game.shake;
+    ctx.save();
+    ctx.translate(shx, shy);
+
+    drawBackground();
+    drawWorld();
+    drawObstacles();
+    drawEntities();
+    drawForeground();
+    drawHUD();
+
+    ctx.restore();
+
+    // film overlay (vignette + grain)
+    drawVignette();
+  }
+
+  function drawBackground() {
+    // Sky / tunnel gradient
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, '#0a0d14');
+    g.addColorStop(0.55, '#15171f');
+    g.addColorStop(1, '#080a0f');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+
+    // ambient red emergency glow on horizon
+    const horizonY = H*0.55;
+    const glow = ctx.createRadialGradient(W*0.5, horizonY, 10, W*0.5, horizonY, W*0.7);
+    glow.addColorStop(0, 'rgba(255, 70, 30, 0.16)');
+    glow.addColorStop(1, 'rgba(255, 70, 30, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0,0,W,H);
+
+    // Far parallax — stretched tall, alternating flip + soft edge fade hides
+    // the seam between repeating tiles for an endless-skyline effect.
+    if (sprites.bg_far) {
+      drawParallaxLayer(sprites.bg_far, 0.18, 0, H * 0.95, { mirror: true, fadeEdges: true });
+    } else {
+      drawSkyline(0.15, '#0c0f15', H*0.62, 90);
+      drawSkyline(0.30, '#13161e', H*0.66, 70);
+    }
+
+    // Atmospheric haze band — sits between sky and ground, hides the
+    // junction where the two background layers meet.
+    const hazeTop = H * 0.45, hazeBot = H * 0.85;
+    const haze = ctx.createLinearGradient(0, hazeTop, 0, hazeBot);
+    haze.addColorStop(0,    'rgba(20, 18, 22, 0)');
+    haze.addColorStop(0.4,  'rgba(40, 22, 18, 0.45)');
+    haze.addColorStop(0.75, 'rgba(60, 28, 16, 0.55)');
+    haze.addColorStop(1,    'rgba(20, 12, 10, 0.55)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, hazeTop, W, hazeBot - hazeTop);
+
+    // Near floor — use painted bg_floor sprite if loaded (with alternating
+    // flip + edge fade for seamless looping), otherwise fall back to the
+    // procedural metal-plate floor.
+    if (sprites.bg_floor) {
+      const floorTopY = H * 0.50;
+      const floorH = H * 0.50;
+      drawParallaxLayer(sprites.bg_floor, 0.85, floorTopY, floorH, { mirror: true, fadeEdges: true });
+    } else {
+      drawRubble(0.85);
+    }
+
+    // Ambient embers
+    for (const e of bgEmbers) {
+      const a = clamp(e.life / e.maxLife, 0, 1) * (0.6 + 0.4*Math.sin(e.flicker));
+      ctx.fillStyle = `rgba(255, 150, 60, ${a})`;
+      ctx.beginPath();
+      ctx.arc(e.x - game.cameraX*0.7, e.y, e.size, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // Bg sparks
+    for (const s of bgSparks) {
+      const a = clamp(s.life/s.maxLife, 0, 1);
+      ctx.fillStyle = s.color.replace(')', `,${a})`).replace('rgb','rgba');
+      ctx.beginPath();
+      ctx.arc(s.x - game.cameraX, s.y, s.size, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // Volumetric fog band
+    const fog = ctx.createLinearGradient(0, H*0.5, 0, H);
+    fog.addColorStop(0, 'rgba(20, 22, 30, 0)');
+    fog.addColorStop(0.6, 'rgba(35, 30, 28, 0.18)');
+    fog.addColorStop(1, 'rgba(10, 12, 18, 0.55)');
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawSkyline(parFactor, color, baseY, maxH) {
+    const offset = -((game.cameraX * parFactor) % 220);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(-50, H);
+    let x = offset - 50;
+    let seed = Math.floor(game.cameraX * parFactor / 220);
+    while (x < W + 200) {
+      // pseudo-random heights
+      const r = Math.abs(Math.sin(seed*12.9898) * 43758.5453 % 1);
+      const w = 60 + r*60;
+      const h = 30 + ((Math.abs(Math.sin(seed*78.233))*43758.5453) % 1) * maxH;
+      ctx.lineTo(x, baseY - h);
+      // top crenellation
+      ctx.lineTo(x + w*0.5, baseY - h - 8);
+      ctx.lineTo(x + w, baseY - h);
+      x += w;
+      seed++;
+    }
+    ctx.lineTo(W+50, H);
+    ctx.closePath();
+    ctx.fill();
+    // window lights on near skyline
+    if (parFactor > 0.2) {
+      ctx.fillStyle = 'rgba(255,140,40,0.4)';
+      const seed2 = Math.floor(game.cameraX * parFactor / 18);
+      for (let k=0;k<60;k++) {
+        const r1 = Math.abs(Math.sin((seed2+k)*9.71) * 43758.5453 % 1);
+        const r2 = Math.abs(Math.sin((seed2+k)*4.37) * 43758.5453 % 1);
+        const wx = (k*30 + offset*0.4) % (W+200) - 50;
+        if (r1 > 0.65) {
+          ctx.fillRect(wx, baseY - 30 - r2*60, 2, 2);
+        }
+      }
+    }
+  }
+
+  function drawPipeWall(parFactor) {
+    const camOff = game.cameraX * parFactor;
+    const baseY = H*0.55;
+    // gradient backdrop
+    ctx.fillStyle = 'rgba(18, 20, 26, 0.55)';
+    ctx.fillRect(0, baseY, W, H-baseY);
+    // pipes (horizontal)
+    const tile = 80;
+    const off = -((camOff) % tile);
+    for (let i=-1; i<W/tile+2; i++) {
+      const x = i*tile + off;
+      // pipe segments at varying heights
+      drawPipeSegment(x, baseY+18, tile, 10, '#2a2f3a', '#1a1d24');
+      drawPipeSegment(x, baseY+44, tile, 6, '#22262e', '#13161c');
+    }
+    // exposed wires hanging
+    ctx.strokeStyle = 'rgba(70,60,55,0.7)';
+    ctx.lineWidth = 1.2;
+    const seed = Math.floor(camOff / 140);
+    for (let k=-1; k<W/140+2; k++) {
+      const wx = k*140 - (camOff % 140);
+      const len = 30 + ((Math.abs(Math.sin((seed+k)*5.3))*43758.5453)%1) * 50;
+      ctx.beginPath();
+      ctx.moveTo(wx, baseY);
+      ctx.bezierCurveTo(wx+8, baseY+len*0.4, wx-6, baseY+len*0.7, wx+2, baseY+len);
+      ctx.stroke();
+    }
+    // flickering overhead lights
+    const lightTile = 320;
+    const loff = -((camOff) % lightTile);
+    for (let i=-1; i<W/lightTile+2; i++) {
+      const lx = i*lightTile + loff;
+      const ly = baseY - 8;
+      const flick = 0.6 + 0.4 * Math.sin(game.time*9 + i*1.7) * (Math.random()<0.02 ? 0 : 1);
+      ctx.fillStyle = `rgba(255, 160, 80, ${0.4*flick})`;
+      ctx.beginPath();
+      ctx.arc(lx, ly+4, 50, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(lx-12, ly-2, 24, 5);
+      ctx.fillStyle = `rgba(255, 220, 140, ${0.9*flick})`;
+      ctx.fillRect(lx-9, ly+1, 18, 2);
+    }
+  }
+
+  function drawPipeSegment(x, y, w, h, c1, c2) {
+    const g = ctx.createLinearGradient(0, y, 0, y+h);
+    g.addColorStop(0, c1);
+    g.addColorStop(0.5, c2);
+    g.addColorStop(1, c1);
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, h);
+    // joint band
+    ctx.fillStyle = c2;
+    ctx.fillRect(x + w - 6, y - 1, 4, h+2);
+  }
+
+  function drawRubble(parFactor) {
+    const camOff = game.cameraX * parFactor;
+    const baseY = groundY();
+    // Upward back-fade
+    const fadeUp = ctx.createLinearGradient(0, baseY - 90, 0, baseY);
+    fadeUp.addColorStop(0, 'rgba(14, 15, 20, 0)');
+    fadeUp.addColorStop(1, 'rgba(14, 15, 20, 1)');
+    ctx.fillStyle = fadeUp;
+    ctx.fillRect(0, baseY - 90, W, 90);
+    // Darker ground strip — moved closer to crushed black so the prop drop
+    // shadows blend in instead of contrasting against a lighter floor
+    const grd = ctx.createLinearGradient(0, baseY, 0, H);
+    grd.addColorStop(0, '#0e1015');
+    grd.addColorStop(0.4, '#070809');
+    grd.addColorStop(1, '#020303');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, baseY, W, H-baseY);
+    // Vignetting wash across the floor — softens the pure-rectangle look
+    const vig = ctx.createLinearGradient(0, baseY, 0, H);
+    vig.addColorStop(0,   'rgba(0,0,0,0.0)');
+    vig.addColorStop(0.7, 'rgba(0,0,0,0.30)');
+    vig.addColorStop(1,   'rgba(0,0,0,0.55)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, baseY, W, H-baseY);
+    // (Metal panel seams + rivets removed — they were drawing as evenly-
+    // spaced vertical lines across the floor, breaking the painted-look.
+    // The flat gradient + vignette above is now the only floor treatment.)
+  }
+
+  function drawWorld() {
+    // (parallax already drawn in drawBackground; this slot is for ground-level FX behind entities)
+    // smoke/dust sit between background and entities
+    for (const p of particles) {
+      if (p.kind !== 'smoke' && p.kind !== 'dust') continue;
+      const a = clamp(p.life / p.maxLife, 0, 1);
+      ctx.fillStyle = p.color.replace(/[\d.]+\)$/, `${a*0.7})`).startsWith('rgba')
+        ? p.color.replace(/[\d.]+\)$/, `${a*0.7})`)
+        : p.color;
+      ctx.globalAlpha = a*0.7;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x - game.cameraX, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawEntities() {
+    ctx.save();
+    ctx.translate(-game.cameraX, 0);
+
+    // pickups (bobbing)
+    for (const p of pickups) drawPickup(p);
+
+    // enemies (dead first behind)
+    for (const e of enemies) drawEnemy(e);
+
+    // enemy bullets
+    for (const b of enemyBullets) {
+      ctx.fillStyle = b.color;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // player bullets
+    for (const b of bullets) drawBullet(b);
+
+    // player
+    drawPlayer();
+
+    // sparks/debris/tracers
+    for (const p of particles) {
+      if (p.kind === 'smoke' || p.kind === 'dust') continue;
+      drawParticle(p);
+    }
+
+    // damage numbers
+    for (const d of damageNumbers) drawDamageNum(d);
+
+    ctx.restore();
+  }
+
+  function drawForeground() {
+    // foreground grain particles / out-of-focus debris
+    ctx.globalAlpha = 0.6;
+    for (let i=0;i<10;i++) {
+      const x = (game.time*60 + i*97) % W;
+      const y = (i*83) % H;
+      ctx.fillStyle = 'rgba(20,18,14,0.22)';
+      ctx.fillRect(x, y, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawVignette() {
+    const g = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.25, W/2, H/2, Math.max(W,H)*0.7);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+    // film grain dots
+    ctx.globalAlpha = 0.06;
+    for (let i=0;i<60;i++) {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(Math.random()*W, Math.random()*H, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawPlayer() {
+    const p = player;
+    const bob = p.onGround ? Math.sin(p.runPhase*2)*2 : 0;
+    const fx = p.x + p.kickX;
+    const fy = p.y + bob;
+    const cx = fx + p.w/2;
+    const cy = fy + p.h/2;
+
+    // shadow
+    if (p.onGround) {
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(cx, groundY()-2, 24, 5, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // sprite path — pick which pose to draw based on player state + weapon
+    const moving = Math.abs(p.vx) > 30;
+    const shooting = p.muzzleFlash > 0 || (input.shoot && p.fireCooldown > 0);
+    const hurting = p.hitFlash > 0.05;
+    const wpn = p.currentWeapon;
+
+    // Per-weapon shoot pose — switch to the aim-down variant any time the
+    // mouse aim points below horizontal, regardless of elevation. Threshold
+    // 0.30 (≈17° below horizontal) so casual flat shots stay flat.
+    const aimingDown = Math.sin(p.aimAngle) > 0.30;
+    const useDown = aimingDown;
+    const shootSprite =
+      wpn === 'pistol'
+        ? (useDown && sprites.hero_shoot_pistol_down ? sprites.hero_shoot_pistol_down
+           : (sprites.hero_shoot_pistol || sprites.hero_shoot))
+    : wpn === 'rocket'
+        ? (useDown && sprites.hero_shoot_rocket_down ? sprites.hero_shoot_rocket_down
+           : (sprites.hero_shoot_rocket || sprites.hero_shoot))
+    : (useDown && sprites.hero_shoot_down ? sprites.hero_shoot_down : sprites.hero_shoot);
+
+    // 2-frame walk cycle per weapon — A and B variants alternate based on runPhase.
+    // The same gun stays equipped whether walking or shooting (no weapon swap).
+    // Pick A or B based on the sin of runPhase (toggles every half-cycle).
+    const useA = Math.sin(p.runPhase * 0.5) >= 0;   // toggle frame every half-cycle of runPhase
+    const pickWalk = (a, b) => sprites[useA ? a : b] || sprites[useA ? b : a];   // either, fall back if one missing
+
+    const runSprite =
+      wpn === 'rocket'
+        ? (pickWalk('hero_run_rocket_a', 'hero_run_rocket_b') || sprites.hero_run)
+    : wpn === 'smg'
+        ? (pickWalk('hero_run_rifle_a', 'hero_run_rifle_b') || pickWalk('hero_run_pistol_a','hero_run_pistol_b') || sprites.hero_idle)
+    : wpn === 'pistol'
+        ? (pickWalk('hero_run_pistol_a', 'hero_run_pistol_b') || pickWalk('hero_run_rifle_a','hero_run_rifle_b') || sprites.hero_idle)
+    : sprites.hero_run;
+
+    // Per-weapon jump pose
+    const jumpSprite =
+      wpn === 'rocket' ? (sprites.hero_jump_rocket || sprites.hero_jump)
+    : wpn === 'smg' ? (sprites.hero_jump_rifle || sprites.hero_jump)
+    : sprites.hero_jump;
+
+    // Per-weapon idle pose — pistol stays as the default hero_idle (already
+    // shows pistol held low). Rifle and rocket use their dedicated standing
+    // poses so the silhouette matches whatever weapon is equipped.
+    const idleSprite =
+      wpn === 'rocket' ? (sprites.hero_idle_rocket || sprites.hero_idle)
+    : wpn === 'smg'    ? (sprites.hero_idle_rifle  || sprites.hero_idle)
+    : sprites.hero_idle;
+
+    let chosen = idleSprite;
+    if (shooting) {
+      chosen = shootSprite || idleSprite;
+    } else if (!p.onGround) {
+      chosen = jumpSprite || runSprite || idleSprite;
+    } else if (hurting) {
+      chosen = sprites.hero_hurt || idleSprite;
+    } else if (moving) {
+      chosen = runSprite || idleSprite;
+    }
+
+    // Sprite bottom follows the player's actual bottom (+8 to compensate for
+    // the alpha-crop padding around the sprite).
+    const spriteBottom = p.y + p.h - bob + 8;
+    // Per-pose height adjustment — crouched / bent poses render shorter than
+    // the standing height so the silhouette reads as compressed.
+    const isDownAim = chosen === sprites.hero_shoot_down
+                   || chosen === sprites.hero_shoot_pistol_down
+                   || chosen === sprites.hero_shoot_rocket_down;
+    const isJump = chosen === sprites.hero_jump
+                || chosen === sprites.hero_jump_rifle
+                || chosen === sprites.hero_jump_rocket;
+    const isHurt = chosen === sprites.hero_hurt;
+    const targetH = isDownAim ? CFG.playerSpriteH * 0.84
+                  : isJump    ? CFG.playerSpriteH * 0.86
+                  : isHurt    ? CFG.playerSpriteH * 0.90
+                  : CFG.playerSpriteH;
+    // Damage tint — paints red onto the sprite silhouette only when the
+    // hero just took a hit. Smoothly fades back as the hitFlash decays.
+    const heroTint = (p.hitFlash > 0)
+      ? { color: '#ff1a1a', alpha: Math.min(0.65, (p.hitFlash / 0.25) * 0.65) }
+      : null;
+    const drewSprite = drawSpriteOnGround(
+      chosen, cx, spriteBottom, targetH, p.facing < 0, heroTint
+    );
+    if (!drewSprite) {
+      drawHeroPlaceholder(p, fx, fy, cx, cy, bob);
+    }
+
+    // muzzle flash — at the actual gun-muzzle position computed in tryShoot
+    if (p.muzzleFlash > 0 && p.muzzleX !== undefined) {
+      const ax = p.muzzleX, ay = p.muzzleY;
+      const a = p.muzzleFlash / 0.06;
+      ctx.fillStyle = `rgba(255,220,150,${a})`;
+      ctx.beginPath();
+      ctx.arc(ax, ay, 22, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,150,40,${a*0.7})`;
+      ctx.beginPath();
+      ctx.arc(ax, ay, 38, 0, Math.PI*2);
+      ctx.fill();
+      // flash spikes along aim
+      ctx.strokeStyle = `rgba(255,240,200,${a})`;
+      ctx.lineWidth = 3;
+      for (let k=0;k<4;k++){
+        const a2 = p.aimAngle + (k-1.5)*0.4;
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ax + Math.cos(a2)*36, ay + Math.sin(a2)*36);
+        ctx.stroke();
+      }
+    }
+
+    // (Hit flash is now drawn as a sprite-shaped red tint inside
+    // drawSpriteOnGround above — no rectangular overlay needed.)
+  }
+
+  function drawHeroPlaceholder(p, fx, fy, cx, cy, bob) {
+    const facing = p.facing;
+    // legs
+    const lp = Math.sin(p.runPhase*2);
+    const lp2 = Math.cos(p.runPhase*2);
+    ctx.fillStyle = '#0c0e12';
+    // back leg
+    ctx.fillRect(cx - 8 + lp*4, fy + p.h*0.55, 9, p.h*0.42 - Math.abs(lp)*4);
+    // front leg
+    ctx.fillRect(cx - 1 - lp2*4, fy + p.h*0.55, 9, p.h*0.42 - Math.abs(lp2)*4);
+    // boots
+    ctx.fillStyle = '#1a1c22';
+    ctx.fillRect(cx - 9 + lp*4, fy + p.h*0.95, 11, 4);
+    ctx.fillRect(cx - 1 - lp2*4, fy + p.h*0.95, 11, 4);
+
+    // torso (tactical jacket)
+    const tx = cx - p.w*0.42, ty = fy + p.h*0.22;
+    const tw = p.w*0.84, th = p.h*0.42;
+    // main jacket
+    const jg = ctx.createLinearGradient(tx, ty, tx, ty+th);
+    jg.addColorStop(0, '#1f2229');
+    jg.addColorStop(1, '#0e1015');
+    ctx.fillStyle = jg;
+    ctx.fillRect(tx, ty, tw, th);
+    // chest panel
+    ctx.fillStyle = '#161a20';
+    ctx.fillRect(tx + 4, ty + 4, tw-8, th*0.55);
+    // belt
+    ctx.fillStyle = '#0a0c10';
+    ctx.fillRect(tx-1, ty+th-4, tw+2, 5);
+    // belt buckle
+    ctx.fillStyle = '#3a3f4a';
+    ctx.fillRect(cx-3, ty+th-4, 6, 5);
+
+    // arms
+    ctx.fillStyle = '#15171c';
+    // back arm
+    ctx.fillRect(cx - 14*facing, ty+4, 7, th*0.7);
+    // front arm extends toward aim (gun arm)
+    ctx.save();
+    ctx.translate(cx, ty + th*0.3);
+    ctx.rotate(p.aimAngle);
+    if (facing < 0) ctx.scale(1,-1);
+    // arm
+    ctx.fillStyle = '#1a1d24';
+    ctx.fillRect(0, -4, 26, 8);
+    // glove
+    ctx.fillStyle = '#0a0c10';
+    ctx.fillRect(24, -5, 6, 10);
+    // gun
+    drawGunPlaceholder(player.currentWeapon);
+    ctx.restore();
+
+    // head
+    const hx = cx, hy = fy + p.h*0.12;
+    // hair (tousled)
+    ctx.fillStyle = '#0a0907';
+    ctx.beginPath();
+    ctx.ellipse(hx, hy-3, 12, 10, 0, 0, Math.PI*2);
+    ctx.fill();
+    // face — warm tan tone
+    ctx.fillStyle = '#b8825a';
+    ctx.beginPath();
+    ctx.ellipse(hx + facing*1, hy+3, 9, 11, 0, 0, Math.PI*2);
+    ctx.fill();
+    // beard / stubble
+    ctx.fillStyle = 'rgba(20,15,10,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(hx + facing*1, hy+8, 7, 5, 0, 0, Math.PI*2);
+    ctx.fill();
+    // hair shadow on top of face
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(hx-9, hy-2, 18, 3);
+    // eye glint
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(hx + facing*4, hy+2, 1.5, 1.5);
+
+    // scarf accent (red cloth)
+    ctx.fillStyle = '#a1281a';
+    ctx.fillRect(cx-7, ty-4, 14, 6);
+  }
+
+  function drawGunPlaceholder(weapon) {
+    // drawn already rotated — origin at shoulder, pointing +x
+    if (weapon === 'pistol') {
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(28, -4, 18, 8);
+      ctx.fillStyle = '#0a0b0e';
+      ctx.fillRect(28, 1, 6, 8); // grip
+      ctx.fillStyle = '#3a3f4a';
+      ctx.fillRect(40, -5, 6, 2); // sight
+    } else if (weapon === 'smg') {
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(28, -4, 30, 8);
+      ctx.fillStyle = '#0a0b0e';
+      ctx.fillRect(34, 1, 6, 9);
+      ctx.fillStyle = '#3a3f4a';
+      ctx.fillRect(50, -6, 8, 2);
+    } else if (weapon === 'shotgun') {
+      ctx.fillStyle = '#3a2516';
+      ctx.fillRect(28, -3, 14, 7); // wood stock
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(40, -5, 28, 9); // double barrel
+      ctx.fillRect(40, 4, 28, 2);
+      ctx.fillStyle = '#0a0b0e';
+      ctx.fillRect(34, 4, 6, 8);
+    } else if (weapon === 'rocket') {
+      ctx.fillStyle = '#3a3f4a';
+      ctx.fillRect(28, -7, 36, 14);
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(28, -9, 36, 4);
+      ctx.fillStyle = '#0a0b0e';
+      ctx.fillRect(34, 7, 8, 8);
+      ctx.fillStyle = '#5a5f6a';
+      ctx.fillRect(58, -9, 4, 18); // muzzle ring
+    }
+  }
+
+  function drawEnemy(e) {
+    const def = CFG.enemies[e.kind];
+    const cx = e.x + e.w/2;
+    const cy = e.y + e.h/2;
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath();
+    ctx.ellipse(cx, e.y + e.h - 2, e.w*0.45, 5, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // sprite path — ALL spawned bots are the same arm-bot.
+    // We use bot_gunner_idle (aiming/firing stance) and bot_gunner_walk
+    // (mid-stride advance) as a 2-frame walk-cycle that toggles based on
+    // whether the bot is moving.
+    // Sprites are canonically drawn facing LEFT (advancing toward hero on the right).
+    // If a bot's facing is +1 (advancing right), we mirror the sprite.
+    const dx = e.x - (e.lastX === undefined ? e.x : e.lastX);
+    const moving = Math.abs(dx) > 0.05;
+    e.lastX = e.x;
+
+    // ---- DEATH ANIMATION ----
+    if (e.dying) {
+      const t = e.deathT / e.deathDuration;        // 0..1
+      const tilt = e.deathTilt * t * t;            // ease-in rotation
+      const fade = 1 - t;                          // alpha fade
+      const flashStrength = Math.max(0, 1 - t * 4); // bright white in first 25%
+      const spr = sprites.bot_gunner_walk || sprites.bot_gunner_idle;
+      if (spr) {
+        const sw = spr.naturalWidth, sh = spr.naturalHeight;
+        const targetH = def.spriteH || e.h * 1.1;
+        const scale = targetH / sh;
+        const dw = sw * scale, dh = targetH;
+        ctx.save();
+        // pivot at the bot's feet so it tips forward like a felled tree
+        ctx.translate(cx, e.y + e.h);
+        ctx.rotate(tilt);
+        if (e.facing > 0) ctx.scale(-1, 1);
+        ctx.globalAlpha = fade;
+        ctx.drawImage(spr, -dw/2, -dh, dw, dh);
+        // white flash overlay on top of sprite during first beats
+        if (flashStrength > 0) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = flashStrength * fade;
+          ctx.drawImage(spr, -dw/2, -dh, dw, dh);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+      return;   // skip HP bar etc. for dying bots
+    }
+
+    // ---- LIVING BOT — 2-frame walk cycle, frames matched for body angle ----
+    // Using only `walk` and `step_a` because they share the same 3/4 body
+    // rotation; only the leg position differs. This eliminates the "spinning"
+    // perception that came from cycling through 4 frames at different angles.
+    // `idle` is reserved for standing still; `step_b` is unused (kept on disk).
+    //
+    // Per-frame flip overrides — set true if an individual frame is mirrored
+    // wrong on disk and needs an extra horizontal flip during draw.
+    const BOT_FRAME_FLIP = {
+      bot_gunner_idle:    false,
+      bot_gunner_walk:    false,
+      bot_gunner_step_a:  false,
+      bot_gunner_step_b:  true,   // body angle is mirrored relative to other frames; flip during draw
+    };
+
+    let key;
+    if (def.isBoss) {
+      // Boss: shoot pose locks for ~0.4s after firing, otherwise 2-frame walk
+      // cycle (walk_a = left leg forward, walk_b = right leg forward — both
+      // true side profile facing left), idle stance when standing still.
+      if (e.shootFlash && e.shootFlash > 0) {
+        key = 'boss_shoot';
+      } else if (moving) {
+        const tick = Math.sin(e.walkPhase * 1.4) > 0;
+        key = tick ? 'boss_walk_a' : 'boss_walk_b';
+      } else {
+        key = 'boss_idle';
+      }
+      if (!sprites[key]) key = sprites.boss_idle ? 'boss_idle' : 'bot_gunner_idle';
+    } else if (def.isSkitter) {
+      // Skitter: rapid 2-frame cycle between low crouch and full dash.
+      if (moving) {
+        const tick = Math.sin(e.walkPhase * 2.6) > 0;
+        key = tick ? 'bot_skitter_charge' : 'bot_skitter_idle';
+      } else {
+        key = 'bot_skitter_idle';
+      }
+      if (!sprites[key]) key = sprites.bot_skitter_idle ? 'bot_skitter_idle' : 'bot_gunner_idle';
+    } else if (moving) {
+      // Gunner: 3-frame walk cycle
+      const cycleFrames = ['bot_gunner_walk','bot_gunner_step_a','bot_gunner_step_b'];
+      const idx = Math.floor((e.walkPhase / (Math.PI * 2 / 3))) % 3;
+      const preferred = cycleFrames[idx];
+      key = sprites[preferred] ? preferred
+          : sprites.bot_gunner_walk ? 'bot_gunner_walk'
+          : 'bot_gunner_idle';
+    } else {
+      key = 'bot_gunner_idle';
+    }
+    // All four boss frames have body-alpha heights within 3% of each other,
+    // so render every pose at the same target height. The previous 0.86
+    // multiplier on boss_shoot was an over-correction that made the boss
+    // visibly shrink mid-fight whenever he fired.
+    let targetH = def.spriteH || (e.h * 1.1);
+
+    const spr = sprites[key] || sprites.bot_gunner_idle;
+    if (spr) {
+      // Subtle vertical wobble while walking — makes the gait feel alive.
+      const wobble = moving ? Math.abs(Math.sin(e.walkPhase * 2)) * 3.5 : 0;
+      const feetY = e.y + e.h + 8 - wobble;
+      // canonical facing of bot sprites is LEFT, so flip when bot.facing > 0 (facing right).
+      // XOR with per-frame override lets us correct individual frames whose
+      // canonical orientation is wrong without re-flipping files on disk.
+      const frameFlip = BOT_FRAME_FLIP[key] || false;
+      const baseFlip  = e.facing > 0;
+      const finalFlip = baseFlip !== frameFlip;     // XOR
+      // Damage tint — fills the sprite alpha with red on hit. Replaces the
+      // previous brightness-flash filter which washed out the silhouette.
+      const enemyTint = (e.hitFlash > 0)
+        ? { color: '#ff1a1a', alpha: Math.min(0.75, (e.hitFlash / 0.12) * 0.75) }
+        : null;
+      drawSpriteOnGround(spr, cx, feetY, targetH, finalFlip, enemyTint);
+    } else {
+      drawBotPlaceholder(e);
+    }
+
+    // HP bar (only if hp < maxHp)
+    if (e.hp < e.maxHp && e.hp > 0) {
+      const bw = e.w*0.9;
+      const bx = cx - bw/2;
+      const by = e.y - 8;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(bx-1, by-1, bw+2, 5);
+      ctx.fillStyle = '#ff5a1f';
+      ctx.fillRect(bx, by, bw * (e.hp/e.maxHp), 3);
+    }
+  }
+
+  function drawBotPlaceholder(e) {
+    const def = CFG.enemies[e.kind];
+    const cx = e.x + e.w/2;
+    const cy = e.y + e.h/2;
+    const flash = e.hitFlash > 0;
+    const wob = Math.sin(e.walkPhase) * (e.kind==='heavy' ? 1.5 : 3);
+
+    if (e.kind === 'skitter') {
+      // small mantis-style bot
+      // body (sleek capsule)
+      ctx.fillStyle = flash ? '#fff' : def.color;
+      ctx.beginPath();
+      ctx.ellipse(cx, e.y + e.h*0.5 + wob*0.3, e.w*0.42, e.h*0.32, 0, 0, Math.PI*2);
+      ctx.fill();
+      // head pod
+      ctx.fillStyle = flash ? '#fff' : '#0e1218';
+      ctx.beginPath();
+      ctx.ellipse(cx + e.facing*e.w*0.18, e.y + e.h*0.32 + wob*0.3, e.w*0.22, e.h*0.18, 0, 0, Math.PI*2);
+      ctx.fill();
+      // eye
+      ctx.fillStyle = flash ? '#fff' : def.accent;
+      ctx.fillRect(cx + e.facing*e.w*0.28, e.y + e.h*0.30, 4, 2);
+      // legs (4 thin)
+      ctx.strokeStyle = flash ? '#fff' : '#0a0c10';
+      ctx.lineWidth = 2;
+      const wp = e.walkPhase;
+      for (let k=0;k<4;k++) {
+        const off = (k-1.5) * e.w*0.14;
+        const swing = Math.sin(wp + k*1.2) * 6;
+        ctx.beginPath();
+        ctx.moveTo(cx + off, e.y + e.h*0.5);
+        ctx.lineTo(cx + off + swing, e.y + e.h*0.78);
+        ctx.lineTo(cx + off + swing*1.5, e.y + e.h*0.95);
+        ctx.stroke();
+      }
+      // antennae
+      ctx.strokeStyle = flash ? '#fff' : def.color;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(cx + e.facing*e.w*0.22, e.y + e.h*0.22);
+      ctx.lineTo(cx + e.facing*e.w*0.34, e.y - 4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + e.facing*e.w*0.18, e.y + e.h*0.22);
+      ctx.lineTo(cx + e.facing*e.w*0.28, e.y - 2);
+      ctx.stroke();
+    } else if (e.kind === 'gunner') {
+      // humanoid armored
+      // legs
+      ctx.fillStyle = flash ? '#fff' : '#1a1d24';
+      const lp = Math.sin(e.walkPhase);
+      const lp2 = Math.cos(e.walkPhase);
+      ctx.fillRect(cx - 10 + lp*3, e.y + e.h*0.62, 8, e.h*0.35);
+      ctx.fillRect(cx + 2 - lp2*3, e.y + e.h*0.62, 8, e.h*0.35);
+      // torso
+      ctx.fillStyle = flash ? '#fff' : def.color;
+      ctx.fillRect(cx - e.w*0.34, e.y + e.h*0.28, e.w*0.68, e.h*0.4);
+      // chest plate
+      ctx.fillStyle = flash ? '#fff' : '#22262e';
+      ctx.fillRect(cx - e.w*0.28, e.y + e.h*0.32, e.w*0.56, e.h*0.28);
+      // shoulder guards
+      ctx.fillStyle = flash ? '#fff' : '#2c313b';
+      ctx.fillRect(cx - e.w*0.42, e.y + e.h*0.28, e.w*0.16, e.h*0.16);
+      ctx.fillRect(cx + e.w*0.26, e.y + e.h*0.28, e.w*0.16, e.h*0.16);
+      // head
+      ctx.fillStyle = flash ? '#fff' : '#0e1218';
+      ctx.fillRect(cx - 10, e.y + e.h*0.10, 20, e.h*0.18);
+      // visor (glowing)
+      ctx.fillStyle = flash ? '#fff' : def.accent;
+      ctx.fillRect(cx - 8 + e.facing*1, e.y + e.h*0.16, 12, 4);
+      ctx.shadowColor = def.accent;
+      ctx.shadowBlur = 8;
+      ctx.fillRect(cx - 8 + e.facing*1, e.y + e.h*0.16, 12, 4);
+      ctx.shadowBlur = 0;
+      // arm with gun
+      ctx.fillStyle = flash ? '#fff' : '#1a1c22';
+      const ax1 = cx + e.facing*e.w*0.34;
+      const ay1 = e.y + e.h*0.40;
+      ctx.fillRect(Math.min(ax1, ax1 + e.facing*22), ay1, 22, 6);
+      // gun barrel
+      ctx.fillStyle = flash ? '#fff' : '#3a3f4a';
+      ctx.fillRect(Math.min(ax1+e.facing*18, ax1+e.facing*18+e.facing*16), ay1-1, 16, 4);
+    } else if (e.kind === 'heavy') {
+      // big mech
+      // legs (chunky)
+      ctx.fillStyle = flash ? '#fff' : '#22262e';
+      const lp = Math.sin(e.walkPhase*0.6);
+      ctx.fillRect(cx - e.w*0.32 + lp*3, e.y + e.h*0.62, e.w*0.22, e.h*0.36);
+      ctx.fillRect(cx + e.w*0.10 - lp*3, e.y + e.h*0.62, e.w*0.22, e.h*0.36);
+      // foot pads
+      ctx.fillStyle = flash ? '#fff' : '#0e1015';
+      ctx.fillRect(cx - e.w*0.34 + lp*3, e.y + e.h*0.94, e.w*0.26, e.h*0.06);
+      ctx.fillRect(cx + e.w*0.08 - lp*3, e.y + e.h*0.94, e.w*0.26, e.h*0.06);
+      // hip
+      ctx.fillStyle = flash ? '#fff' : '#1a1c22';
+      ctx.fillRect(cx - e.w*0.30, e.y + e.h*0.55, e.w*0.6, e.h*0.12);
+      // torso (massive)
+      ctx.fillStyle = flash ? '#fff' : def.color;
+      ctx.fillRect(cx - e.w*0.42, e.y + e.h*0.22, e.w*0.84, e.h*0.36);
+      // chest insignia
+      ctx.fillStyle = flash ? '#fff' : def.accent;
+      ctx.beginPath();
+      ctx.arc(cx, e.y + e.h*0.36, 8, 0, Math.PI*2);
+      ctx.fill();
+      // shoulder spikes
+      ctx.fillStyle = flash ? '#fff' : '#3a3f4a';
+      ctx.beginPath();
+      ctx.moveTo(cx - e.w*0.48, e.y + e.h*0.28);
+      ctx.lineTo(cx - e.w*0.32, e.y + e.h*0.18);
+      ctx.lineTo(cx - e.w*0.32, e.y + e.h*0.30);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx + e.w*0.48, e.y + e.h*0.28);
+      ctx.lineTo(cx + e.w*0.32, e.y + e.h*0.18);
+      ctx.lineTo(cx + e.w*0.32, e.y + e.h*0.30);
+      ctx.closePath();
+      ctx.fill();
+      // head (helm)
+      ctx.fillStyle = flash ? '#fff' : '#1a1c22';
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, e.y + e.h*0.22);
+      ctx.lineTo(cx, e.y + e.h*0.06);
+      ctx.lineTo(cx + 14, e.y + e.h*0.22);
+      ctx.closePath();
+      ctx.fill();
+      // helm crest spikes
+      ctx.fillStyle = flash ? '#fff' : '#3a3f4a';
+      for (let k=0;k<3;k++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + (k-1)*7, e.y + e.h*0.10);
+        ctx.lineTo(cx + (k-1)*7 + 3, e.y - 4);
+        ctx.lineTo(cx + (k-1)*7 + 6, e.y + e.h*0.10);
+        ctx.closePath();
+        ctx.fill();
+      }
+      // glowing eye slit
+      ctx.fillStyle = def.accent;
+      ctx.shadowColor = def.accent;
+      ctx.shadowBlur = 10;
+      ctx.fillRect(cx - 9 + e.facing*2, e.y + e.h*0.14, 18, 3);
+      ctx.shadowBlur = 0;
+      // arms (big fists)
+      ctx.fillStyle = flash ? '#fff' : '#22262e';
+      ctx.fillRect(cx - e.w*0.52, e.y + e.h*0.30, e.w*0.16, e.h*0.32);
+      ctx.fillRect(cx + e.w*0.36, e.y + e.h*0.30, e.w*0.16, e.h*0.32);
+      ctx.fillStyle = flash ? '#fff' : '#0e1218';
+      ctx.fillRect(cx - e.w*0.54, e.y + e.h*0.58, e.w*0.20, e.h*0.10);
+      ctx.fillRect(cx + e.w*0.34, e.y + e.h*0.58, e.w*0.20, e.h*0.10);
+    }
+  }
+
+  function drawBullet(b) {
+    if (b.kind === 'rocket') {
+      // chunky grenade-rocket body with detailed shading
+      const ang = b.rot !== undefined ? b.rot : Math.atan2(b.vy, b.vx);
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(ang);
+      // tail flame (drawn behind body)
+      const flameGrad = ctx.createLinearGradient(-30, 0, -8, 0);
+      flameGrad.addColorStop(0, 'rgba(255,90,31,0)');
+      flameGrad.addColorStop(0.5, 'rgba(255,180,80,0.7)');
+      flameGrad.addColorStop(1, 'rgba(255,240,200,0.95)');
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath();
+      ctx.moveTo(-32, 0);
+      ctx.quadraticCurveTo(-16, -7, -6, -4);
+      ctx.lineTo(-6, 4);
+      ctx.quadraticCurveTo(-16, 7, -32, 0);
+      ctx.closePath();
+      ctx.fill();
+      // body — dark grey with metallic highlight
+      ctx.fillStyle = '#2a2f3a';
+      ctx.fillRect(-8, -5, 18, 10);
+      ctx.fillStyle = '#4a4f5a';
+      ctx.fillRect(-8, -5, 18, 2);
+      ctx.fillStyle = '#1a1c22';
+      ctx.fillRect(-8, 3, 18, 2);
+      // fins
+      ctx.fillStyle = '#3a3f4a';
+      ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(-12, -8); ctx.lineTo(-6, -5); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-8, 5); ctx.lineTo(-12, 8); ctx.lineTo(-6, 5); ctx.closePath(); ctx.fill();
+      // nose cone
+      ctx.fillStyle = '#5a5f6a';
+      ctx.beginPath();
+      ctx.moveTo(10, -5); ctx.lineTo(16, 0); ctx.lineTo(10, 5); ctx.closePath();
+      ctx.fill();
+      // warning stripe
+      ctx.fillStyle = '#ff5a1f';
+      ctx.fillRect(2, -5, 3, 10);
+      ctx.restore();
+    } else {
+      // tracer-style bullet
+      const ang = Math.atan2(b.vy, b.vx);
+      const len = 14;
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(b.x - Math.cos(ang)*len, b.y - Math.sin(ang)*len);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 1.5, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  function drawPickup(p) {
+    const cx = p.x + p.w/2;
+    const cy = p.y + p.h/2 + Math.sin(p.bob)*3;
+    // glow
+    const gl = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30);
+    gl.addColorStop(0, p.color + 'cc');
+    gl.addColorStop(1, p.color + '00');
+    ctx.fillStyle = gl;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 28, 0, Math.PI*2);
+    ctx.fill();
+
+    // sprite path
+    const pickKey = 'pickup_' + p.type;
+    if (sprites[pickKey]) {
+      const sw = sprites[pickKey].naturalWidth;
+      const sh = sprites[pickKey].naturalHeight;
+      const targetH = 44;
+      const scale = targetH / sh;
+      const w = sw * scale, h = targetH;
+      ctx.drawImage(sprites[pickKey], cx - w/2, cy - h/2, w, h);
+      return;
+    }
+
+    // box
+    ctx.fillStyle = '#0e1116';
+    ctx.fillRect(p.x, p.y + Math.sin(p.bob)*3, p.w, p.h);
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(p.x, p.y + Math.sin(p.bob)*3, p.w, p.h);
+    // icon
+    ctx.fillStyle = p.color;
+    if (p.type === 'health') {
+      ctx.fillRect(cx-2, cy-7, 4, 14);
+      ctx.fillRect(cx-7, cy-2, 14, 4);
+    } else if (p.type === 'ammo') {
+      // bullet rows
+      ctx.fillRect(cx-7, cy-5, 4, 10);
+      ctx.fillRect(cx-1, cy-5, 4, 10);
+      ctx.fillRect(cx+5, cy-5, 4, 10);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(cx-7, cy-7, 4, 2);
+      ctx.fillRect(cx-1, cy-7, 4, 2);
+      ctx.fillRect(cx+5, cy-7, 4, 2);
+    } else if (p.type === 'weapon') {
+      // gear-ish
+      ctx.fillRect(cx-7, cy-2, 14, 4);
+      ctx.fillRect(cx-2, cy-7, 4, 14);
+      ctx.fillRect(cx-5, cy-5, 3, 3);
+      ctx.fillRect(cx+2, cy-5, 3, 3);
+      ctx.fillRect(cx-5, cy+2, 3, 3);
+      ctx.fillRect(cx+2, cy+2, 3, 3);
+    } else if (p.type === 'score') {
+      // star
+      ctx.beginPath();
+      for (let i=0;i<5;i++) {
+        const a = -Math.PI/2 + i*Math.PI*2/5;
+        ctx.lineTo(cx + Math.cos(a)*8, cy + Math.sin(a)*8);
+        const a2 = a + Math.PI/5;
+        ctx.lineTo(cx + Math.cos(a2)*3, cy + Math.sin(a2)*3);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  function drawParticle(p) {
+    const a = clamp(p.life / p.maxLife, 0, 1);
+    if (p.kind === 'spark') {
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (p.kind === 'tracer') {
+      ctx.globalAlpha = a*0.8;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (p.kind === 'debris') {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot || 0);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    } else if (p.kind === 'flash') {
+      ctx.globalAlpha = a;
+      const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      gr.addColorStop(0, '#fff');
+      gr.addColorStop(0.4, p.color);
+      gr.addColorStop(1, 'rgba(255,90,31,0)');
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawDamageNum(d) {
+    const a = clamp(d.life / 0.7, 0, 1);
+    ctx.font = (d.big ? 'bold 18px ' : 'bold 13px ') + 'system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(0,0,0,${a*0.6})`;
+    ctx.fillText(d.text, d.x+1, d.y+1);
+    ctx.fillStyle = d.color;
+    ctx.globalAlpha = a;
+    ctx.fillText(d.text, d.x, d.y);
+    ctx.globalAlpha = 1;
+  }
+
+  // ------------- HUD -------------
+  function drawHUD() {
+    if (game.state === 'start') return;
+
+    // Boss HP bar — only appears when a boss is alive in the world
+    if (game.bossActive) {
+      const boss = enemies.find(e => e.kind === 'boss' && !e.dying);
+      if (boss) {
+        const barW = Math.min(560, W * 0.45);
+        const barH = 16;
+        const bx = (W - barW) / 2;
+        const by = 22;
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(bx - 4, by - 4, barW + 8, barH + 22);
+        ctx.fillStyle = '#1c1f25';
+        ctx.fillRect(bx, by, barW, barH);
+        const frac = clamp(boss.hp / boss.maxHp, 0, 1);
+        const grad = ctx.createLinearGradient(bx, by, bx, by + barH);
+        grad.addColorStop(0, '#ff8a3d');
+        grad.addColorStop(1, '#a1281a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx, by, barW * frac, barH);
+        ctx.fillStyle = '#ffae3d';
+        ctx.font = 'bold 12px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('BOSS', W / 2, by + barH + 12);
+      }
+    }
+
+    // Top-left: HP, weapon, ammo
+    const pad = 18;
+    // HP bar
+    const hpW = 220, hpH = 14;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(pad-2, pad-2, hpW+4, hpH+4);
+    ctx.fillStyle = '#1c1f25';
+    ctx.fillRect(pad, pad, hpW, hpH);
+    const hpFrac = clamp(player.hp / CFG.playerHpMax, 0, 1);
+    const hpGrad = ctx.createLinearGradient(0, pad, 0, pad+hpH);
+    hpGrad.addColorStop(0, '#37e57d');
+    hpGrad.addColorStop(1, '#1a9c4f');
+    ctx.fillStyle = hpFrac < 0.3 ? '#ff5a1f' : hpGrad;
+    ctx.fillRect(pad, pad, hpW * hpFrac, hpH);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.ceil(player.hp) + ' / ' + CFG.playerHpMax, pad + hpW/2, pad + hpH - 3);
+
+    // weapon + ammo
+    ctx.textAlign = 'left';
+    const wy = pad + hpH + 10;
+    const w = CFG.weapons[player.currentWeapon];
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(pad-2, wy-2, hpW+4, 22);
+    ctx.fillStyle = w.color;
+    ctx.font = 'bold 13px system-ui, sans-serif';
+    ctx.fillText(w.name, pad+6, wy+13);
+    const ammo = game.ammo[player.currentWeapon];
+    const ammoText = ammo === Infinity ? '∞' : ammo;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'right';
+    ctx.fillText(ammoText, pad + hpW - 6, wy+13);
+
+    // weapon slots
+    ctx.textAlign = 'left';
+    const slots = ['pistol','smg','rocket'];
+    const sy = wy + 28;
+    for (let i=0;i<slots.length;i++) {
+      const id = slots[i];
+      const x = pad + i*46;
+      const unlocked = game.weaponsUnlocked[id];
+      const active = id === player.currentWeapon;
+      ctx.fillStyle = active ? 'rgba(255,90,31,0.25)' : 'rgba(0,0,0,0.45)';
+      ctx.fillRect(x, sy, 42, 32);
+      ctx.strokeStyle = active ? '#ff5a1f' : (unlocked ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.08)');
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, sy, 42, 32);
+      // mini weapon icon — use the cropped hero-sprite icon if loaded,
+      // otherwise fall back to the procedural placeholder. Icon fills the
+      // whole slot (the number used to live inside, but it's now under the
+      // slot as a key cap so the gun has the full icon area).
+      const iconKey = 'weapon_icon_' + (id === 'smg' ? 'rifle' : id);
+      const iconImg = sprites[iconKey];
+      if (iconImg) {
+        ctx.drawImage(iconImg, x + 2, sy + 2, 38, 28);
+        if (!unlocked) {
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillRect(x + 2, sy + 2, 38, 28);
+        }
+      } else {
+        ctx.save();
+        ctx.translate(x+22, sy+18);
+        drawGunPlaceholder(id);
+        ctx.restore();
+      }
+      // ammo count — bottom-right corner of slot, shadow for legibility
+      ctx.font = 'bold 10px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      const cAmmo = game.ammo[id];
+      const ammoStr = cAmmo === Infinity ? '∞' : String(cAmmo);
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.fillText(ammoStr, x + 39, sy + 30);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(ammoStr, x + 38, sy + 29);
+      ctx.textAlign = 'left';
+      // Keybind cap UNDER the slot (e.g. [1] [2] [3]) so the icon area is
+      // free for the weapon visual. Active slot's key glows orange.
+      const capW = 18, capH = 14;
+      const capX = x + 21 - capW / 2;
+      const capY = sy + 32 + 4;
+      ctx.fillStyle = active ? 'rgba(255,90,31,0.85)' : 'rgba(0,0,0,0.65)';
+      ctx.fillRect(capX, capY, capW, capH);
+      ctx.strokeStyle = active ? '#ffae3d' : (unlocked ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)');
+      ctx.lineWidth = 1;
+      ctx.strokeRect(capX + 0.5, capY + 0.5, capW - 1, capH - 1);
+      ctx.fillStyle = active ? '#1a1a1a' : (unlocked ? '#fff' : 'rgba(255,255,255,0.4)');
+      ctx.font = 'bold 10px ui-monospace, Menlo, Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(i+1), capX + capW/2, capY + 10);
+      ctx.textAlign = 'left';
+    }
+
+    // Top-right: score, kills, distance, combo
+    ctx.textAlign = 'right';
+    ctx.font = 'bold 16px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(W - 220 - pad - 2, pad - 2, 220+4, 86+4);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px system-ui, sans-serif';
+    ctx.fillText(String(game.score).padStart(6,'0'), W - pad - 8, pad + 22);
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.fillText('SCORE', W - pad - 8, pad + 35);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px system-ui, sans-serif';
+    ctx.fillText('KILLS  ' + game.kills, W - pad - 8, pad + 56);
+    ctx.fillText('DIST   ' + Math.floor(game.distance) + 'm', W - pad - 8, pad + 74);
+    if (game.combo > 1) {
+      ctx.font = 'bold 16px system-ui, sans-serif';
+      ctx.fillStyle = '#ffae3d';
+      ctx.fillText('×' + game.combo, W - pad - 8, pad + 96);
+    }
+
+    // Crosshair at mouse
+    const mx = input.mouseX, my = input.mouseY;
+    ctx.strokeStyle = 'rgba(255,90,31,0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(mx, my, 14, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(mx-22, my); ctx.lineTo(mx-8, my);
+    ctx.moveTo(mx+8, my); ctx.lineTo(mx+22, my);
+    ctx.moveTo(mx, my-22); ctx.lineTo(mx, my-8);
+    ctx.moveTo(mx, my+8); ctx.lineTo(mx, my+22);
+    ctx.stroke();
+    ctx.fillStyle = '#ff5a1f';
+    ctx.fillRect(mx-1, my-1, 2, 2);
+
+    // Low-HP edge pulse
+    if (player.hp / CFG.playerHpMax < 0.3 && player.hp > 0) {
+      const pulse = 0.25 + 0.25 * Math.sin(game.time*8);
+      const v = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.35, W/2, H/2, Math.max(W,H)*0.7);
+      v.addColorStop(0, 'rgba(255,30,30,0)');
+      v.addColorStop(1, `rgba(255,30,30,${pulse})`);
+      ctx.fillStyle = v;
+      ctx.fillRect(0,0,W,H);
+    }
+  }
+
+  // ------------- Game flow -------------
+  function startGame() {
+    document.getElementById('start').classList.add('hidden');
+    document.getElementById('gameover').classList.add('hidden');
+    document.getElementById('pause').classList.add('hidden');
+    document.getElementById('continue').classList.add('hidden');
+    resetRun();
+    game.state = 'play';
+    startBGM();   // user gesture (button click) lets browser autoplay audio
+  }
+
+  function showContinueChoice() {
+    game.awaitingContinueChoice = true;
+    game.state = 'pause';   // freeze gameplay while modal is up
+    document.getElementById('cnKills').textContent = game.kills;
+    document.getElementById('cnBosses').textContent = game.bossDefeated;
+    document.getElementById('cnScore').textContent = game.score;
+    document.getElementById('continue').classList.remove('hidden');
+  }
+
+  function continueRun() {
+    document.getElementById('continue').classList.add('hidden');
+    game.awaitingContinueChoice = false;
+    game.state = 'play';
+  }
+
+  function finishRun() {
+    document.getElementById('continue').classList.add('hidden');
+    game.awaitingContinueChoice = false;
+    // Treat as a winning game-over with bonus
+    document.getElementById('goTitle').textContent = 'MISSION CLEARED.';
+    document.getElementById('goSub').textContent = 'You took down ' + game.bossDefeated + ' boss' + (game.bossDefeated===1?'':'es') + '. Cash out earned.';
+    gameOver();
+  }
+
+  function resetRun() {
+    player = makePlayer();
+    bullets = []; enemies = []; enemyBullets = []; pickups = [];
+    particles = []; damageNumbers = []; obstacles = [];
+    game.obstacleTimer = 0; game.nextObstacleAt = 4.5;
+    game.bossActive = false; game.bossDefeated = 0;
+    game.awaitingContinueChoice = false;
+    game.time = 0;
+    game.cameraX = 0;
+    game.shake = 0;
+    game.spawnTimer = 0; game.nextEnemyAt = 1.5;
+    game.pickupTimer = 0; game.nextPickupAt = 8;
+    game.distance = 0;
+    game.kills = 0; game.score = 0;
+    game.combo = 0; game.comboTimer = 0;
+    game.weaponsUnlocked = { pistol: true, smg: false, rocket: false };
+    game.ammo = { pistol: Infinity, smg: 0, rocket: 0 };
+    game.state = 'play';
+    document.getElementById('gameover').classList.add('hidden');
+    document.getElementById('pause').classList.add('hidden');
+  }
+
+  function togglePause() {
+    if (game.state === 'play') {
+      game.state = 'pause';
+      document.getElementById('pause').classList.remove('hidden');
+    } else if (game.state === 'pause') {
+      game.state = 'play';
+      document.getElementById('pause').classList.add('hidden');
+    }
+  }
+
+  function gameOver() {
+    if (game.state === 'over') return;
+    game.state = 'over';
+    if (game.score > game.best) {
+      game.best = game.score;
+      try { localStorage.setItem('jn_best', String(game.best)); } catch(e){}
+    }
+    document.getElementById('goKills').textContent = game.kills;
+    document.getElementById('goBosses').textContent = game.bossDefeated;
+    document.getElementById('goDist').textContent = Math.floor(game.distance) + 'm';
+    document.getElementById('goScore').textContent = game.score.toLocaleString();
+    document.getElementById('goBest').textContent = game.best.toLocaleString();
+    document.getElementById('resultsToast').classList.add('hidden');
+    document.getElementById('gameover').classList.remove('hidden');
+  }
+
+  // wire up buttons
+  function enterImmersiveMode() {
+    // Request fullscreen (works on Android Chrome / Samsung Internet / Firefox)
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen ||
+                el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (req) { try { req.call(el); } catch(e) {} }
+    // Try to lock landscape orientation (works while in fullscreen)
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+    // iOS Safari trick: a tiny scroll dismisses the URL bar
+    setTimeout(() => { window.scrollTo(0, 1); }, 100);
+  }
+  function startGameWithFullscreen() {
+    enterImmersiveMode();
+    startGame();
+  }
+  document.getElementById('startBtn').addEventListener('click', startGameWithFullscreen);
+  document.getElementById('retryBtn').addEventListener('click', startGameWithFullscreen);
+  document.getElementById('resumeBtn').addEventListener('click', togglePause);
+  document.getElementById('continueBtn').addEventListener('click', continueRun);
+  document.getElementById('finishBtn').addEventListener('click', finishRun);
+  document.getElementById('shareXBtn').addEventListener('click', shareToX);
+  document.getElementById('saveImgBtn').addEventListener('click', () => {
+    downloadShareCard();
+    showResultsToast('Image saved — drop it on Instagram, X, anywhere.');
+  });
+
+  // ============================================================
+  // SHARE CARD — paints the player's run stats onto a 1080×1080
+  // canvas as a downloadable PNG, using the home cover artwork as
+  // the backdrop for visual continuity.
+  // ============================================================
+  function generateShareCard() {
+    const W = 1080, H = 1080;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+
+    // Backdrop — use the home cover image if loaded, else a deep gradient
+    const cover = document.querySelector('#start .home-bg');
+    const coverImg = (cover && cover.tagName === 'IMG') ? cover : null;
+    if (coverImg && coverImg.complete && coverImg.naturalWidth) {
+      // cover-fit (mirror CSS object-fit: cover)
+      const sw = coverImg.naturalWidth, sh = coverImg.naturalHeight;
+      const r = Math.max(W/sw, H/sh);
+      const dw = sw * r, dh = sh * r;
+      ctx.drawImage(coverImg, (W-dw)/2, (H-dh)/2, dw, dh);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0e131b');
+      g.addColorStop(1, '#04060a');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+    // Dark overlay so text reads
+    const overlay = ctx.createLinearGradient(0, 0, 0, H);
+    overlay.addColorStop(0,    'rgba(0,0,0,0.55)');
+    overlay.addColorStop(0.45, 'rgba(0,0,0,0.78)');
+    overlay.addColorStop(1,    'rgba(0,0,0,0.92)');
+    ctx.fillStyle = overlay; ctx.fillRect(0, 0, W, H);
+    // Vignette
+    const vg = ctx.createRadialGradient(W/2, H/2, W*0.25, W/2, H/2, W*0.7);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+    // Logo at top — use the loaded logo image
+    const logo = document.querySelector('#start .home-logo');
+    if (logo && logo.complete && logo.naturalWidth) {
+      const lw = 480;
+      const lh = lw * (logo.naturalHeight / logo.naturalWidth);
+      ctx.drawImage(logo, (W-lw)/2, 80, lw, lh);
+    } else {
+      ctx.fillStyle = '#ffae3d';
+      ctx.font = '900 64px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('JANA NAYAGAN', W/2, 160);
+      ctx.fillStyle = '#f4f1ea';
+      ctx.font = '24px system-ui, sans-serif';
+      ctx.fillText('LAST STAND', W/2, 200);
+    }
+
+    // "I scored" label
+    ctx.fillStyle = 'rgba(244,241,234,0.65)';
+    ctx.textAlign = 'center';
+    ctx.font = '22px system-ui, sans-serif';
+    ctx.letterSpacing = '4px';
+    ctx.fillText('MY RUN', W/2, 420);
+
+    // Big score
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 200px system-ui, sans-serif';
+    ctx.fillText(game.score.toLocaleString(), W/2, 600);
+
+    ctx.fillStyle = 'rgba(255,170,60,0.85)';
+    ctx.font = '20px system-ui, sans-serif';
+    ctx.fillText('SCORE', W/2, 640);
+
+    // Stats row
+    const stats = [
+      ['KILLS',     String(game.kills)],
+      ['BOSSES',    String(game.bossDefeated)],
+      ['DISTANCE',  Math.floor(game.distance) + 'm'],
+    ];
+    const colW = W / stats.length;
+    ctx.font = '900 56px system-ui, sans-serif';
+    ctx.fillStyle = '#fff';
+    stats.forEach((s, i) => {
+      const cx = colW * i + colW / 2;
+      ctx.fillText(s[1], cx, 800);
+    });
+    ctx.font = '18px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(244,241,234,0.55)';
+    stats.forEach((s, i) => {
+      const cx = colW * i + colW / 2;
+      ctx.fillText(s[0], cx, 832);
+    });
+
+    // Tagline at bottom
+    ctx.fillStyle = '#ffae3d';
+    ctx.font = 'bold 26px system-ui, sans-serif';
+    ctx.fillText('Can you beat my score?', W/2, 940);
+    ctx.fillStyle = 'rgba(244,241,234,0.55)';
+    ctx.font = '14px system-ui, sans-serif';
+    ctx.fillText('JANA NAYAGAN — LAST STAND', W/2, 980);
+    ctx.fillText('@ikevinadams', W/2, 1010);
+
+    return c;
+  }
+
+  function downloadShareCard() {
+    const canvas = generateShareCard();
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = `jana-nayagan-score-${game.score}.png`;
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+  }
+
+  function buildShareText() {
+    const bossText = game.bossDefeated > 0
+      ? ` and ${game.bossDefeated} boss${game.bossDefeated === 1 ? '' : 'es'}`
+      : '';
+    return `🔥 Just took down ${game.kills} arm-bots${bossText} for a ${game.score.toLocaleString()} score in JANA NAYAGAN: Last Stand. Can you beat me?`;
+  }
+
+  function shareToX() {
+    const text = buildShareText();
+    const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    // CRITICAL: open the X intent SYNCHRONOUSLY inside the click handler.
+    // Browsers block window.open() if it's behind any await/setTimeout/etc.
+    // because they treat delayed opens as suspicious popup attempts.
+    const win = window.open(intent, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      // Popup blocked — fall back to navigating the same tab so the share still happens
+      window.location.href = intent;
+    }
+    // After the popup is open, download the share card so the user can attach it
+    downloadShareCard();
+    showResultsToast('Image saved — attach it to your X post.');
+
+    // On mobile devices that support Web Share with files, also offer that flow
+    // (it'll show after the X tab opens; user can pick whichever they prefer)
+    if (navigator.canShare) {
+      try {
+        const canvas = generateShareCard();
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          const file = new File([blob], `jana-nayagan-score-${game.score}.png`, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try { await navigator.share({ files: [file], title: 'My JANA NAYAGAN run', text }); } catch(e) {}
+          }
+        }, 'image/png');
+      } catch(e) { /* ignore */ }
+    }
+  }
+
+  function showResultsToast(msg) {
+    const t = document.getElementById('resultsToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    clearTimeout(showResultsToast._timer);
+    showResultsToast._timer = setTimeout(() => t.classList.add('hidden'), 3500);
+  }
+
+  // ------------- Main loop -------------
+  let last = performance.now();
+  let _lastBodyState = '';
+  let _wpnUiTimer = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    // clear
+    ctx.clearRect(0,0,W,H);
+    if (game.state === 'start') {
+      // Start screen draws its own DOM cover artwork; keep the canvas blank
+      // so the cover image and HUD elements aren't overlaid by the procedural
+      // game world.
+    } else {
+      render();
+    }
+    // Sync body class so #touch-controls reveals only during 'play'
+    if (game.state !== _lastBodyState) {
+      _lastBodyState = game.state;
+      document.body.classList.toggle('is-playing', game.state === 'play');
+      if (window.refreshTouchWeapons) window.refreshTouchWeapons();
+    }
+    // Refresh weapon UI lazily (every ~200ms) so unlocks/active weapon update
+    _wpnUiTimer += dt;
+    if (_wpnUiTimer >= 0.2) {
+      _wpnUiTimer = 0;
+      if (window.refreshTouchWeapons) window.refreshTouchWeapons();
+    }
+    requestAnimationFrame(frame);
+  }
+  // boot in start state
+  player = makePlayer();
+  game.state = 'start';
+  requestAnimationFrame(frame);
+
+  // Try to start the home-screen BGM immediately. Modern browsers block
+  // autoplay of audio without a user gesture, so the first attempt may
+  // silently fail — in that case we attach a one-shot listener to ANY
+  // user interaction (click / touch / keypress) which will start music
+  // the moment they engage with the page. Net effect: music plays as
+  // soon as it's allowed to.
+  startBGM();
+  if (!audioStarted || (bgmEl && bgmEl.paused)) {
+    const kickoff = () => {
+      // reset the audioStarted flag so startBGM actually retries
+      if (bgmEl && bgmEl.paused) bgmEl.play().catch(() => {});
+      else { audioStarted = false; startBGM(); }
+      window.removeEventListener('pointerdown', kickoff);
+      window.removeEventListener('keydown',     kickoff);
+      window.removeEventListener('touchstart',  kickoff);
+    };
+    window.addEventListener('pointerdown', kickoff, { once: true });
+    window.addEventListener('keydown',     kickoff, { once: true });
+    window.addEventListener('touchstart',  kickoff, { once: true });
+  }
+})();
+</script>
 </body>
 </html>
